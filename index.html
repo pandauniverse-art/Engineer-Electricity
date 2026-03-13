@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="전기기사 시험 준비를 위한 핵심 개념 학습 플랫폼">
-    <meta name="theme-color" content="#3B82F6">
-    <title>전기기사 핵심 개념 학습 플랫폼</title>
+    <meta name="description" content="전기기사 시험 핵심 개념 학습 플랫폼">
+    <meta name="theme-color" content="#ffffff">
+    <title>전기기사 스마트 학습 플랫폼</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
 </head>
 <body>
@@ -15,8 +15,8 @@
         <div class="container">
             <div class="header-content">
                 <div class="logo">
-                    <i class="fas fa-bolt"></i>
-                    <span>전기기사 학습</span>
+                    <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+                    <span>전기기사 패스</span>
                 </div>
                 <div class="header-controls">
                     <button class="icon-btn" id="darkModeToggle" title="다크모드 전환">
@@ -29,106 +29,81 @@
 
     <main class="main-container">
         <div class="container">
+            <div class="mode-selector-wrapper">
+                <div class="mode-selector">
+                    <button class="mode-btn active" data-mode="written">
+                        <i class="fas fa-book-open"></i> 필기 모드
+                    </button>
+                    <button class="mode-btn" data-mode="practical">
+                        <i class="fas fa-pen-nib"></i> 실기 모드
+                    </button>
+                </div>
+            </div>
+
             <section class="search-section">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" placeholder="개념, 공식, 용어 검색..." autocomplete="off">
-                    <button class="clear-btn" id="clearSearch" style="display: none;">
-                        <i class="fas fa-times"></i>
-                    </button>
+                    <input type="text" id="searchInput" placeholder="무엇을 찾고 계신가요?" autocomplete="off">
+                    <button class="clear-btn" id="clearSearch" style="display: none;"><i class="fas fa-times"></i></button>
                 </div>
                 
                 <div class="filter-controls">
-                    <div class="filter-group">
-                        <label>카테고리</label>
-                        <select id="categoryFilter">
-                            <option value="all">전체 과목</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label>출제빈도</label>
-                        <select id="frequencyFilter">
-                            <option value="all">전체</option>
-                            <option value="상">상 (⭐⭐⭐)</option>
-                            <option value="중">중 (⭐⭐)</option>
-                            <option value="하">하 (⭐)</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label>보기</label>
-                        <select id="viewFilter">
-                            <option value="all">전체</option>
-                            <option value="favorites">즐겨찾기만</option>
-                            <option value="learned">학습완료</option>
-                            <option value="unlearned">미학습</option>
-                        </select>
-                    </div>
+                    <select id="frequencyFilter" class="modern-select">
+                        <option value="all">⭐ 출제빈도 전체</option>
+                        <option value="상">⭐⭐⭐ 빈도 상</option>
+                        <option value="중">⭐⭐ 빈도 중</option>
+                        <option value="하">⭐ 빈도 하</option>
+                    </select>
+                    <select id="viewFilter" class="modern-select">
+                        <option value="all">👀 보기 방식 전체</option>
+                        <option value="favorites">💖 즐겨찾기만</option>
+                        <option value="learned">✅ 학습완료만</option>
+                        <option value="unlearned">⬜ 미학습만</option>
+                    </select>
                 </div>
             </section>
 
             <section class="stats-section">
                 <div class="stat-card">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                        <i class="fas fa-book"></i>
-                    </div>
-                    <div class="stat-content">
+                    <div class="stat-icon light-blue"><i class="fas fa-layer-group"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-label">등록된 개념</div>
                         <div class="stat-value" id="totalConcepts">0</div>
-                        <div class="stat-label">전체 개념</div>
                     </div>
                 </div>
-                
                 <div class="stat-card">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="favoritesCount">0</div>
+                    <div class="stat-icon light-pink"><i class="fas fa-heart"></i></div>
+                    <div class="stat-info">
                         <div class="stat-label">즐겨찾기</div>
+                        <div class="stat-value" id="favoritesCount">0</div>
                     </div>
                 </div>
-                
                 <div class="stat-card">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="learnedCount">0</div>
+                    <div class="stat-icon light-green"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-info">
                         <div class="stat-label">학습완료</div>
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="progressPercent">0%</div>
-                        <div class="stat-label">학습 진도</div>
+                        <div class="stat-value" id="learnedCount">0</div>
                     </div>
                 </div>
             </section>
 
-            <section class="category-tabs" id="categoryTabs">
-                </section>
+            <section class="category-tabs" id="categoryTabs"></section>
 
             <div class="result-info">
                 <div id="resultCount" class="result-count"></div>
                 <div class="sort-controls">
                     <button class="sort-btn active" data-sort="default">기본순</button>
-                    <button class="sort-btn" data-sort="title">이름순</button>
+                    <button class="sort-btn" data-sort="title">가나다순</button>
                     <button class="sort-btn" data-sort="frequency">빈도순</button>
                 </div>
             </div>
 
-            <section class="concepts-grid" id="conceptsGrid">
-                </section>
+            <section class="concepts-grid" id="conceptsGrid"></section>
 
             <div class="no-results" id="noResults" style="display: none;">
-                <i class="fas fa-search"></i>
-                <h3>검색 결과가 없습니다</h3>
-                <p>다른 검색어나 필터를 시도해보세요.</p>
+                <div class="empty-icon">😵</div>
+                <h3>검색 결과가 없어요</h3>
+                <p>다른 검색어나 필터를 선택해보세요.</p>
             </div>
         </div>
     </main>
@@ -137,57 +112,39 @@
         <div class="modal-overlay" id="modalOverlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modalTitle"></h2>
-                <button class="modal-close" id="modalClose">
-                    <i class="fas fa-times"></i>
-                </button>
+                <div class="modal-badge-group">
+                    <span class="concept-badge" id="modalCategory"></span>
+                    <span class="concept-frequency" id="modalFrequency"></span>
+                </div>
+                <button class="modal-close" id="modalClose"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
-                <div class="concept-badge" id="modalCategory"></div>
-                <div class="concept-frequency" id="modalFrequency"></div>
+                <h2 id="modalTitle" class="modal-title-text"></h2>
                 
-                <div class="concept-section">
-                    <h3><i class="fas fa-info-circle"></i> 정의</h3>
+                <div class="concept-section definition-box">
                     <p id="modalDefinition"></p>
                 </div>
                 
                 <div class="concept-section" id="modalFormulaSection">
-                    <h3><i class="fas fa-calculator"></i> 공식</h3>
+                    <h3 class="section-title">핵심 내용 / 공식</h3>
                     <div class="formula-box" id="modalFormula"></div>
                 </div>
                 
-                <div class="concept-section" id="modalExampleSection">
-                    <h3><i class="fas fa-lightbulb"></i> 예시</h3>
-                    <p id="modalExample"></p>
-                </div>
-                
                 <div class="concept-section" id="modalRelatedSection">
-                    <h3><i class="fas fa-link"></i> 관련 개념</h3>
+                    <h3 class="section-title">연관 키워드</h3>
                     <div class="related-tags" id="modalRelated"></div>
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-favorite" id="modalFavoriteBtn">
-                    <i class="far fa-star"></i>
-                    <span>즐겨찾기</span>
+                    <i class="far fa-heart"></i><span>즐겨찾기</span>
                 </button>
                 <button class="btn btn-learned" id="modalLearnedBtn">
-                    <i class="far fa-check-circle"></i>
-                    <span>학습완료</span>
+                    <i class="far fa-check-circle"></i><span>학습완료</span>
                 </button>
             </div>
         </div>
     </div>
-
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2024 전기기사 학습 플랫폼. Made with ❤️ for 전기기사 수험생</p>
-        </div>
-    </footer>
-
-    <button class="scroll-top" id="scrollTop">
-        <i class="fas fa-arrow-up"></i>
-    </button>
 
     <script src="data.js"></script>
     <script src="script.js"></script>
