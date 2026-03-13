@@ -3,7 +3,7 @@ class ElectricianApp {
         this.concepts = electricianData.concepts;
         this.categories = electricianData.categories;
         
-        this.currentMode = 'written'; // 기본 모드: 필기
+        this.currentMode = 'written'; 
         this.currentCategory = 'all';
         this.currentFrequency = 'all';
         this.currentView = 'all';
@@ -25,7 +25,6 @@ class ElectricianApp {
     }
 
     setupEventListeners() {
-        // 필기/실기 모드 전환
         document.querySelectorAll('.mode-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
@@ -39,13 +38,19 @@ class ElectricianApp {
             });
         });
 
-        // 검색
         document.getElementById('searchInput').addEventListener('input', this.debounce((e) => {
             this.searchQuery = e.target.value.toLowerCase();
             this.filterConcepts();
+            this.updateClearButton();
         }, 300));
 
-        // 필터
+        document.getElementById('clearSearch').addEventListener('click', () => {
+            document.getElementById('searchInput').value = '';
+            this.searchQuery = '';
+            this.filterConcepts();
+            this.updateClearButton();
+        });
+
         document.getElementById('frequencyFilter').addEventListener('change', (e) => {
             this.currentFrequency = e.target.value; this.filterConcepts();
         });
@@ -53,7 +58,6 @@ class ElectricianApp {
             this.currentView = e.target.value; this.filterConcepts();
         });
 
-        // 정렬
         document.querySelectorAll('.sort-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
@@ -64,7 +68,6 @@ class ElectricianApp {
             });
         });
 
-        // 기타 UI 컨트롤
         document.getElementById('darkModeToggle').addEventListener('click', () => {
             this.darkMode = !this.darkMode;
             this.applyDarkMode();
@@ -204,38 +207,13 @@ class ElectricianApp {
         const formulaSec = document.getElementById('modalFormulaSection');
         if(concept.formula) {
             formulaSec.style.display = 'block';
-            document.getElementById('modalFormula').textContent = concept.formula;
+            document.getElementById('modalFormula').innerText = concept.formula;
         } else {
             formulaSec.style.display = 'none';
         }
 
-        // 연관 키워드 태그 생성
-        const relatedSec = document.getElementById('modalRelatedSection');
-        if(concept.relatedConcepts && concept.relatedConcepts.length > 0) {
-            relatedSec.style.display = 'block';
-            const relatedContainer = document.getElementById('modalRelated');
-            relatedContainer.innerHTML = '';
-            concept.relatedConcepts.forEach(tagText => {
-                const tag = document.createElement('span');
-                tag.className = 'related-tag';
-                tag.textContent = tagText;
-                tag.addEventListener('click', () => {
-                    document.getElementById('searchInput').value = tagText;
-                    this.searchQuery = tagText.toLowerCase();
-                    this.closeModal();
-                    this.filterConcepts();
-                });
-                relatedContainer.appendChild(tag);
-            });
-        } else {
-            relatedSec.style.display = 'none';
-        }
-
-        // 즐겨찾기, 학습완료 버튼 이벤트 매핑
         const favBtn = document.getElementById('modalFavoriteBtn');
         const learnBtn = document.getElementById('modalLearnedBtn');
-        
-        // 기존 이벤트 리스너 제거를 위해 복제
         const newFavBtn = favBtn.cloneNode(true);
         const newLearnBtn = learnBtn.cloneNode(true);
         favBtn.parentNode.replaceChild(newFavBtn, favBtn);
@@ -249,15 +227,22 @@ class ElectricianApp {
 
         newFavBtn.addEventListener('click', () => {
             this.toggleFavorite(concept.id);
-            this.openModal(concept); // UI 갱신
+            this.openModal(concept); 
         });
         newLearnBtn.addEventListener('click', () => {
             this.toggleLearned(concept.id);
-            this.openModal(concept); // UI 갱신
+            this.openModal(concept); 
         });
 
         document.getElementById('conceptModal').classList.add('active');
         document.body.style.overflow = 'hidden';
+
+        // ★ 수식(MathJax) 렌더링 실행
+        if (concept.formula && window.MathJax) {
+            MathJax.typesetPromise([document.getElementById('modalFormula')]).catch(function (err) {
+                console.log('MathJax error: ', err.message);
+            });
+        }
     }
 
     closeModal() {
@@ -299,6 +284,10 @@ class ElectricianApp {
         const icon = document.querySelector('#darkModeToggle i');
         document.body.classList.toggle('dark-mode', this.darkMode);
         icon.className = this.darkMode ? 'fas fa-sun' : 'fas fa-moon';
+    }
+
+    updateClearButton() {
+        document.getElementById('clearSearch').style.display = this.searchQuery ? 'block' : 'none';
     }
 
     debounce(func, wait) {
