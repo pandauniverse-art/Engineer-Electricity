@@ -111,7 +111,7 @@ const electricianData = {
     { id: 502, category: 'circuit', title: '중첩의 원리', definition: '전원이 여러 개일 때 개별 응답의 합.', formula: '$$ \\text{전압원: 단락(Short)} $$\\n$$ \\text{전류원: 개방(Open)} $$', frequency: '상' },
     { id: 503, category: 'circuit', title: '직렬 공진 주파수', definition: '허수부가 0이 되어 임피던스가 최소화.', formula: '$$ f_0 = \\frac{1}{2\\pi\\sqrt{LC}} $$', frequency: '상' },
     { id: 504, category: 'circuit', title: '과도현상 시정수 (τ)', definition: '응답의 지연 정도 (최종값의 63.2%).', formula: '$$ \\tau_{RC} = RC $$\\n$$ \\tau_{RL} = \\frac{L}{R} $$', frequency: '상' },
-    { id: 505, category: 'circuit', title: '최대전력 전달 조건', definition: '내부 임피던스와 부하 임피던스가 공액일 때.', formula: '$$ Z_L = Z_S^* \\quad (R_L = R_S, X_L = -X_S) $$', frequency: '상' },
+    { id: 505, category: 'circuit', title: '최대 전력 전달 조건', definition: '내부 임피던스와 부하 임피던스가 공액일 때.', formula: '$$ Z_L = Z_S^* \\quad (R_L = R_S, X_L = -X_S) $$', frequency: '상' },
     { id: 506, category: 'circuit', title: '비정현파 실효값', definition: '고조파 포함 파형의 크기.', formula: '$$ V_{rms} = \\sqrt{V_0^2 + V_1^2 + V_2^2 + \\cdots} $$', frequency: '상' },
     { id: 507, category: 'circuit', title: '2전력계법', definition: '단상 전력계 2대로 3상 전력 측정.', formula: '$$ P = W_1 + W_2 $$\\n$$ P_r = \\sqrt{3}(W_1 - W_2) $$', frequency: '상' },
     { id: 508, category: 'circuit', title: 'Y-Δ 등가 변환', definition: '결선 방식 변환 시 저항값 변화.', formula: '$$ R_Y = \\frac{R_\\Delta}{3} \\quad \\text{(저항 동일 시)} $$', frequency: '상' },
@@ -134,7 +134,7 @@ const electricianData = {
     { id: 603, category: 'control', title: '폐루프 전달함수', definition: '피드백 시스템의 전체 이득.', formula: '$$ T(s) = \\frac{G(s)}{1 \\pm G(s)H(s)} $$', frequency: '상' },
     { id: 604, category: 'control', title: '정상상태 오차', definition: '시간이 무한대일 때의 편차.', formula: '$$ e_{ss} = \\lim_{s \\to 0} s E(s) $$', frequency: '상' },
     { id: 605, category: 'control', title: '특성방정식 (2차)', definition: '시스템의 동특성 결정.', formula: '$$ s^2 + 2\\zeta\\omega_n s + \\omega_n^2 = 0 $$', frequency: '상' },
-    { id: 606, category: 'control', title: '감쇠비 (ζ)', definition: '진동 여부 지표.', formula: '$$ \\zeta < 1 \\text{ (부족감쇠/진동)} $$\\n$$ \\zeta = 1 \\text{ (임계감쇠)} $$', frequency: '중' },
+    { id: 606, category: 'control', title: '감쇠비 (ζ)', definition: '진동 여부 지표.', formula: '$$ \\zeta < 1 \\text (부족감쇠/진동) $$\\n$$ \\zeta = 1 \\text (임계감쇠) $$', frequency: '중' },
     { id: 607, category: 'control', title: '최대 오버슈트', definition: '목표값을 초과하는 최대량.', formula: '$$ M_p = e^{-\\frac{\\zeta\\pi}{\\sqrt{1-\\zeta^2}}} \\times 100 \\% $$', frequency: '중' },
     { id: 608, category: 'control', title: '보드 선도 이득', definition: '주파수에 따른 크기(dB).', formula: '$$ G_{dB} = 20 \\log_{10} |G(j\\omega)| $$', frequency: '중' },
     { id: 609, category: 'control', title: 'PID 제어 특성', definition: '제어계 응답 개선.', formula: '$$ \\text{I(적분): 잔류편차 제거} $$\\n$$ \\text{D(미분): 오버슈트 억제} $$', frequency: '상' },
@@ -246,3 +246,39 @@ const STORAGE_KEYS = {
   progress: 'electrician_progress',
   darkMode: 'electrician_darkmode'
 };
+
+// [추가] 자격 요건 안내 고정 데이터
+const qualificationRequirements = [
+  {
+    grade: "전기기능사",
+    icon: "⚡",
+    summary: "제한 없음 (누구나 응시 가능)",
+    details: [
+      "학력, 경력, 연령, 성별 등 아무런 제한이 없습니다.",
+      "전기 분야 입문자 및 비전공자가 가장 먼저 도전하는 자격증입니다."
+    ]
+  },
+  {
+    grade: "전기산업기사",
+    icon: "⚙️",
+    summary: "전문대졸 또는 2년 이상 경력자",
+    details: [
+      "<strong>기능사 취득 후:</strong> + 실무 경력 1년 이상",
+      "<strong>관련학과 전문대졸:</strong> 졸업자 또는 졸업예정자 (2년제/3년제)",
+      "<strong>관련학과 대학졸:</strong> 1/2 이상 수료자 (4년제 기준 2학년 마침)",
+      "<strong>순수 실무 경력:</strong> 동일/유사 분야 2년 이상"
+    ]
+  },
+  {
+    grade: "전기기사",
+    icon: "🏆",
+    summary: "4년제 대졸 또는 4년 이상 경력자",
+    details: [
+      "<strong>기능사 취득 후:</strong> + 실무 경력 3년 이상",
+      "<strong>산업기사 취득 후:</strong> + 실무 경력 1년 이상",
+      "<strong>관련학과 대학졸:</strong> 졸업자 또는 졸업예정자 (4년제 기준 4학년 재학)",
+      "<strong>관련학과 전문대졸:</strong> 졸업 후 + 실무 경력 1~2년 이상",
+      "<strong>순수 실무 경력:</strong> 동일/유사 분야 4년 이상"
+    ]
+  }
+];
