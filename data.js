@@ -134,7 +134,7 @@ const electricianData = {
     { id: 603, category: 'control', title: '폐루프 전달함수', definition: '피드백 시스템의 전체 이득.', formula: '$$ T(s) = \\frac{G(s)}{1 \\pm G(s)H(s)} $$', frequency: '상' },
     { id: 604, category: 'control', title: '정상상태 오차', definition: '시간이 무한대일 때의 편차.', formula: '$$ e_{ss} = \\lim_{s \\to 0} s E(s) $$', frequency: '상' },
     { id: 605, category: 'control', title: '특성방정식 (2차)', definition: '시스템의 동특성 결정.', formula: '$$ s^2 + 2\\zeta\\omega_n s + \\omega_n^2 = 0 $$', frequency: '상' },
-    { id: 606, category: 'control', title: '감쇠비 (ζ)', definition: '진동 여부 지표.', formula: '$$ \\zeta < 1 \\text (부족감쇠/진동) $$\\n$$ \\zeta = 1 \\text (임계감쇠) $$', frequency: '중' },
+    { id: 606, category: 'control', title: '감쇠비 (ζ)', definition: '진동 여부 지표.', formula: '$$ \\zeta < 1 \\text{ (부족감쇠/진동)} $$\\n$$ \\zeta = 1 \\text{ (임계감쇠)} $$', frequency: '중' },
     { id: 607, category: 'control', title: '최대 오버슈트', definition: '목표값을 초과하는 최대량.', formula: '$$ M_p = e^{-\\frac{\\zeta\\pi}{\\sqrt{1-\\zeta^2}}} \\times 100 \\% $$', frequency: '중' },
     { id: 608, category: 'control', title: '보드 선도 이득', definition: '주파수에 따른 크기(dB).', formula: '$$ G_{dB} = 20 \\log_{10} |G(j\\omega)| $$', frequency: '중' },
     { id: 609, category: 'control', title: 'PID 제어 특성', definition: '제어계 응답 개선.', formula: '$$ \\text{I(적분): 잔류편차 제거} $$\\n$$ \\text{D(미분): 오버슈트 억제} $$', frequency: '상' },
@@ -229,7 +229,7 @@ const electricianData = {
     { id: 1010, category: 'prac_table', title: '금속관 굵기 선정', definition: '단면적 혼용 시 기준.', formula: '$$ \\text{전선 총 피복 단면적 } \\le \\text{ 관 내단면적의 32\\%} $$', frequency: '중' },
     { id: 1011, category: 'prac_table', title: '수용가 부하 상정', definition: '표준 부하 밀도.', formula: '$$ \\text{바닥면적} \\times \\text{표준부하}[\\text{VA/m}^2] + \\text{가산} $$', frequency: '상' },
     { id: 1012, category: 'prac_table', title: '과전류 차단기 용량', definition: '표 대조 산정.', formula: '$$ \\text{가장 큰 모터 기동전류 + 나머지 부하} $$', frequency: '상' },
-    { id: 1013, category: 'prac_table', title: '콘덴서 용량 승수(K)', definition: '역률 표에서 교차점 확인.', formula: '$$ Q_c = P \\times K \\text{ (표에서 찾은 승수)} $$', frequency: '상' },
+    { id: 1013, category: 'prac_table', title: '콘덴서 용량 승수(K)', definition: '역률 표에서 교차점 확인.', formula: '$$ Q_c = P \\times K \\text (표에서 찾은 승수) $$', frequency: '상' },
     { id: 1014, category: 'prac_table', title: '케이블 허용전류 감소계수', definition: '다수 전선 집합 시 열 발생.', formula: '$$ I_{allow} = \\text{표준 허용전류} \\times \\text{감소계수} $$', frequency: '상' },
     { id: 1015, category: 'prac_table', title: 'CT 배수 (여유율)', definition: '계기용 변류기 1차측 선정.', formula: '$$ \\text{CT 1차} = \\text{부하전류} \\times (1.25 \\sim 1.5) $$', frequency: '상' },
     { id: 1016, category: 'prac_table', title: '방폭 기구 등급 표', definition: '위험 지역 구분.', formula: '$$ \\text{내압(d), 안전증(e), 본질안전(i)} $$', frequency: '중' },
@@ -240,14 +240,13 @@ const electricianData = {
   ]
 };
 
-// 로컬스토리지 키
 const STORAGE_KEYS = {
   favorites: 'electrician_favorites',
   progress: 'electrician_progress',
   darkMode: 'electrician_darkmode'
 };
 
-// [추가] 자격 요건 안내 고정 데이터
+// 자격 요건 고정 데이터
 const qualificationRequirements = [
   {
     grade: "전기기능사",
@@ -282,3 +281,28 @@ const qualificationRequirements = [
     ]
   }
 ];
+
+// 모의고사 자격 정보 및 과목 연동 정보 규정
+const mockExamSettings = {
+    craftsman: {
+        name: "전기기능사 필기 모의고사",
+        timeLimit: 60 * 60, // 60분
+        totalQuestions: 60,
+        passingScore: 60,
+        subjects: ['foundation', 'machine', 'regulation']
+    },
+    industrial: {
+        name: "전기산업기사 필기 모의고사",
+        timeLimit: 150 * 60, // 150분
+        totalQuestions: 100,
+        passingScore: 60,
+        subjects: ['electromagnetics', 'power', 'machine', 'circuit', 'regulation']
+    },
+    engineer: {
+        name: "전기기사 필기 모의고사",
+        timeLimit: 150 * 60, // 150분
+        totalQuestions: 100,
+        passingScore: 60,
+        subjects: ['electromagnetics', 'power', 'machine', 'circuit', 'control', 'regulation']
+    }
+};
