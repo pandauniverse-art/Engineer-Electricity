@@ -48,6 +48,9 @@
                     <button class="mode-btn" data-mode="requirements">
                         <i class="fas fa-id-card"></i> 자격 요건
                     </button>
+                    <button class="mode-btn" data-mode="mockexam">
+                        <i class="fas fa-stopwatch"></i> 실전 모의고사
+                    </button>
                 </div>
                 <button id="startQuizBtn" class="quiz-btn">
                     <i class="fas fa-brain"></i> 랜덤 퀴즈
@@ -115,6 +118,8 @@
             <section class="concepts-grid" id="conceptsGrid"></section>
             
             <section class="requirements-section" id="requirementsSection" style="display: none; padding: 10px 0 30px 0;"></section>
+            
+            <section class="mockexam-section" id="mockExamSection" style="display: none; padding: 10px 0 30px 0;"></section>
 
             <div class="no-results" id="noResults" style="display: none;">
                 <div class="empty-icon">😵</div>
@@ -160,7 +165,7 @@
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
                 <div class="modal-badge-group">
-                    <span class="concept-badge" style="background:#ea580c"><i class="fas fa-brain"></i> 실전 퀴즈</span>
+                    <span class="concept-badge" id="quizBadgeType" style="background:#ea580c"><i class="fas fa-brain"></i> 실전 퀴즈</span>
                     <span class="concept-frequency" id="quizProgressText">문제 1 / 10</span>
                 </div>
                 <button class="modal-close" id="quizModalClose"><i class="fas fa-times"></i></button>
@@ -180,9 +185,9 @@
 
             <div class="modal-body" id="quizResultScreen" style="display:none; text-align:center; padding: 40px 20px;">
                 <div style="font-size: 4rem; margin-bottom: 20px;" id="quizResultIcon">🏆</div>
-                <h2 style="font-size: 2rem; color:var(--text-main); margin-bottom: 10px;">퀴즈 완료!</h2>
-                <p style="font-size: 1.2rem; color:var(--text-sub); margin-bottom: 30px;">총 10문제 중 <strong id="quizScoreText" style="color:var(--primary); font-size:1.5rem;"></strong>문제를 맞혔습니다.</p>
-                <div style="display:flex; gap:10px;">
+                <h2 style="font-size: 2rem; color:var(--text-main); margin-bottom: 10px;" id="quizResultTitle">퀴즈 완료!</h2>
+                <p style="font-size: 1.2rem; color:var(--text-sub); margin-bottom: 30px;" id="quizResultMeta">총 10문제 중 <strong id="quizScoreText" style="color:var(--primary); font-size:1.5rem;"></strong>문제를 맞혔습니다.</p>
+                <div style="display:flex; gap:10px; justify-content:center;">
                     <button class="btn" id="quizRetryBtn" style="background:var(--primary); color:white;">다시 풀기</button>
                     <button class="btn" id="quizEndBtn" style="background:var(--bg-main); color:var(--text-main); border:1px solid var(--border);">종료하기</button>
                 </div>
