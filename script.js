@@ -1,19 +1,26 @@
-// 상태 관리 객체
-let currentMode = 'written'; // 'written', 'practical', 'requirements'
+// 상태 관리 변수들
+let currentMode = 'written'; // 'written', 'practical', 'requirements', 'mockexam'
 let selectedCategory = 'all';
 let searchQuery = '';
 let freqFilter = 'all';
 let viewFilter = 'all';
 let currentSort = 'default';
 
-// 로컬스토리지 데이터 로드 변수
+// 모의고사 제어 변수
+let isMockExamActive = false;
+let mockTimerInterval = null;
+let mockTimeLeft = 0;
+let currentMockGrade = '';
+
+// 로컬 스토리지
 let favorites = JSON.parse(localStorage.getItem(STORAGE_KEYS.favorites)) || [];
 let progress = JSON.parse(localStorage.getItem(STORAGE_KEYS.progress)) || [];
 
-// DOM 요소들
+// DOM 객체 바인딩
 const modeButtons = document.querySelectorAll('.mode-btn');
 const conceptsGrid = document.getElementById('conceptsGrid');
 const requirementsSection = document.getElementById('requirementsSection');
+const mockExamSection = document.getElementById('mockExamSection');
 const searchSection = document.querySelector('.search-section');
 const statsSection = document.querySelector('.stats-section');
 const categoryTabs = document.getElementById('categoryTabs');
@@ -21,7 +28,6 @@ const quizBtn = document.getElementById('startQuizBtn');
 const resultCountEl = document.getElementById('resultCount');
 const noResultsEl = document.getElementById('noResults');
 
-// 초기화
 document.addEventListener('DOMContentLoaded', () => {
     initDarkMode();
     initEventListeners();
@@ -30,7 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
     renderConcepts();
 });
 
-// 다크모드 초기화
 function initDarkMode() {
     const isDark = localStorage.getItem(STORAGE_KEYS.darkMode) === 'true';
     if (isDark) {
@@ -39,57 +44,60 @@ function initDarkMode() {
     }
 }
 
-// 이벤트 리스너 등록
 function initEventListeners() {
-    // 1. 다크모드 토글
+    // 다크모드 토글
     document.getElementById('darkModeToggle').addEventListener('click', () => {
         const isDark = document.body.classList.toggle('dark-mode');
         localStorage.setItem(STORAGE_KEYS.darkMode, isDark);
         document.getElementById('darkModeToggle').innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
     });
 
-    // 2. 모드 변경 (필기, 실기, 자격요건)
+    // 상단 대메뉴 탭 토글 분기 제어
     modeButtons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', () => {
             modeButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             
             currentMode = btn.getAttribute('data-mode');
-            selectedCategory = 'all'; // 카테고리 초기화
+            selectedCategory = 'all';
             
-            // UI 모드 제어
+            // 모든 특수 컨테이너 초기 초기화 숨김
+            if(requirementsSection) requirementsSection.style.display = 'none';
+            if(mockExamSection) mockExamSection.style.display = 'none';
+            
             if (currentMode === 'requirements') {
-                // 자격요건일 때 모든 기존 검색/문제 레이아웃 숨김
-                if(conceptsGrid) conceptsGrid.style.display = 'none';
-                if(searchSection) searchSection.style.display = 'none';
-                if(statsSection) statsSection.style.display = 'none';
-                if(categoryTabs) categoryTabs.style.display = 'none';
-                if(quizBtn) quizBtn.style.display = 'none';
-                if(resultCountEl) resultCountEl.style.display = 'none';
-                if(noResultsEl) noResultsEl.style.display = 'none';
-                
+                toggleMainLayout(false);
                 if(requirementsSection) {
                     requirementsSection.style.display = 'block';
                     renderRequirements();
                 }
+            } else if (currentMode === 'mockexam') {
+                toggleMainLayout(false);
+                if(mockExamSection) {
+                    mockExamSection.style.display = 'block';
+                    renderMockExamDashboard();
+                }
             } else {
-                // 필기/실기 모드일 때 메인 UI 레이아웃 노출 및 리랜더링
-                if(requirementsSection) requirementsSection.style.display = 'none';
-                
-                if(conceptsGrid) conceptsGrid.style.display = 'grid';
-                if(searchSection) searchSection.style.display = 'block';
-                if(statsSection) statsSection.style.display = 'flex';
-                if(categoryTabs) categoryTabs.style.display = 'flex';
-                if(quizBtn) quizBtn.style.display = 'inline-flex';
-                if(resultCountEl) resultCountEl.style.display = 'block';
-                
+                toggleMainLayout(true);
                 renderTabs();
                 renderConcepts();
             }
         });
     });
 
-    // 3. 검색 창 입력 이벤트
+    // 레이아웃 스위칭 보조함수
+    function toggleMainLayout(show) {
+        const displayState = show ? 'block' : 'none';
+        if(conceptsGrid) conceptsGrid.style.display = show ? 'grid' : 'none';
+        if(searchSection) searchSection.style.display = displayState;
+        if(statsSection) statsSection.style.display = show ? 'flex' : 'none';
+        if(categoryTabs) categoryTabs.style.display = show ? 'flex' : 'none';
+        if(quizBtn) quizBtn.style.display = show ? 'inline-flex' : 'none';
+        if(resultCountEl) resultCountEl.style.display = displayState;
+        if(!show && noResultsEl) noResultsEl.style.display = 'none';
+    }
+
+    // 검색 창 연동
     const searchInput = document.getElementById('searchInput');
     const clearSearch = document.getElementById('clearSearch');
     
@@ -106,7 +114,7 @@ function initEventListeners() {
         renderConcepts();
     });
 
-    // 4. 필터 엘리먼트 변경 이벤트
+    // 필터 박스 제어
     document.getElementById('frequencyFilter').addEventListener('change', (e) => {
         freqFilter = e.target.value;
         renderConcepts();
@@ -117,7 +125,7 @@ function initEventListeners() {
         renderConcepts();
     });
 
-    // 5. 정렬 버튼 이벤트
+    // 가나다 정렬 제어
     document.querySelectorAll('.sort-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
@@ -127,29 +135,24 @@ function initEventListeners() {
         });
     });
 
-    // 6. 개념 상세 모달 닫기 이벤트
+    // 모달창 닫기 연동 (모의고사 타이머 리셋 예외 공통처리)
     document.getElementById('modalClose').addEventListener('click', closeConceptModal);
     document.getElementById('modalOverlay').addEventListener('click', closeConceptModal);
 
-    // 7. 퀴즈 실행/닫기 이벤트
-    document.getElementById('startQuizBtn').addEventListener('click', startQuiz);
+    document.getElementById('startQuizBtn').addEventListener('click', () => startQuiz(false));
     document.getElementById('quizModalClose').addEventListener('click', closeQuizModal);
     document.getElementById('quizModalOverlay').addEventListener('click', closeQuizModal);
     document.getElementById('quizEndBtn').addEventListener('click', closeQuizModal);
 }
 
-// 카테고리 탭 렌더링
 function renderTabs() {
     const filteredCats = electricianData.categories.filter(c => c.mode === currentMode);
-    
     let html = `<button class="tab-btn ${selectedCategory === 'all' ? 'active' : ''}" data-id="all">전체</button>`;
     filteredCats.forEach(cat => {
         html += `<button class="tab-btn ${selectedCategory === cat.id ? 'active' : ''}" data-id="${cat.id}">${cat.icon} ${cat.name}</button>`;
     });
-    
     categoryTabs.innerHTML = html;
 
-    // 탭 클릭 이벤트 바인딩
     categoryTabs.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             categoryTabs.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -160,21 +163,17 @@ function renderTabs() {
     });
 }
 
-// 통계 지표 업데이트
 function updateStats() {
     const activeConcepts = electricianData.concepts.filter(c => {
         const cat = electricianData.categories.find(catItem => catItem.id === c.category);
         return cat && cat.mode === currentMode;
     });
-
     document.getElementById('totalConcepts').innerText = activeConcepts.length;
     document.getElementById('favoritesCount').innerText = favorites.filter(id => activeConcepts.some(c => c.id === id)).length;
     document.getElementById('learnedCount').innerText = progress.filter(id => activeConcepts.some(c => c.id === id)).length;
 }
 
-// 데이터 필터링 및 정렬 처리 함수
 function getFilteredConcepts() {
-    // 1. 모드 및 카테고리 선택 필터링
     let items = electricianData.concepts.filter(c => {
         const cat = electricianData.categories.find(catItem => catItem.id === c.category);
         if (!cat || cat.mode !== currentMode) return false;
@@ -182,37 +181,25 @@ function getFilteredConcepts() {
         return true;
     });
 
-    // 2. 출제빈도 검색 필터
-    if (freqFilter !== 'all') {
-        items = items.filter(c => c.frequency === freqFilter);
-    }
+    if (freqFilter !== 'all') items = items.filter(c => c.frequency === freqFilter);
 
-    // 3. 상태(즐겨찾기, 학습완료) 필터
-    if (viewFilter === 'favorites') {
-        items = items.filter(c => favorites.includes(c.id));
-    } else if (viewFilter === 'learned') {
-        items = items.filter(c => progress.includes(c.id));
-    } else if (viewFilter === 'unlearned') {
-        items = items.filter(c => !progress.includes(c.id));
-    }
+    if (viewFilter === 'favorites') items = items.filter(c => favorites.includes(c.id));
+    else if (viewFilter === 'learned') items = items.filter(c => progress.includes(c.id));
+    else if (viewFilter === 'unlearned') items = items.filter(c => !progress.includes(c.id));
 
-    // 4. 입력 검색창 필터
     if (searchQuery) {
         items = items.filter(c => c.title.toLowerCase().includes(searchQuery) || c.definition.toLowerCase().includes(searchQuery));
     }
 
-    // 5. 정렬 기준 처리
     if (currentSort === 'title') {
         items.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
     } else if (currentSort === 'frequency') {
         const score = { '상': 3, '중': 2, '하': 1 };
         items.sort((a, b) => score[b.frequency] - score[a.frequency]);
     }
-
     return items;
 }
 
-// 개념 카드 렌더링 함수
 function renderConcepts() {
     const list = getFilteredConcepts();
     resultCountEl.innerText = `검색 결과: ${list.length}건`;
@@ -253,38 +240,31 @@ function renderConcepts() {
     conceptsGrid.innerHTML = html;
     updateStats();
 
-    // 카드 내부 개별 클릭 바인딩
     conceptsGrid.querySelectorAll('.concept-card').forEach(card => {
         card.addEventListener('click', (e) => {
-            if (e.target.closest('.card-action-btn')) return; // 하단 버튼 클릭 무시
-            const id = parseInt(card.getAttribute('data-id'));
-            openConceptModal(id);
+            if (e.target.closest('.card-action-btn')) return;
+            openConceptModal(parseInt(card.getAttribute('data-id')));
         });
     });
 
-    // 즐겨찾기 토글 버튼 이벤트
     conceptsGrid.querySelectorAll('.fav-toggle-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            const id = parseInt(btn.getAttribute('data-id'));
-            toggleFavorite(id);
+            toggleFavorite(parseInt(btn.getAttribute('data-id')));
         });
     });
 
-    // 학습 완료 토글 버튼 이벤트
     conceptsGrid.querySelectorAll('.check-toggle-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            const id = parseInt(btn.getAttribute('data-id'));
-            toggleProgress(id);
+            toggleProgress(parseInt(btn.getAttribute('data-id')));
         });
     });
 }
 
-// 자격 요건 렌더링 함수
 function renderRequirements() {
     requirementsSection.innerHTML = `
-        <h2 style="margin-bottom: 20px; font-weight:700; color:var(--text-main); font-size:1.5rem; letter-spacing:-0.5px;">📋 국가기술자격 응시 자격 요건 안내</h2>
+        <h2 style="margin-bottom: 20px; font-weight:700; color:var(--text-main); font-size:1.5rem;">📋 국가기술자격 응시 자격 요건 안내</h2>
         <div class="req-grid" style="display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
             ${qualificationRequirements.map(req => `
                 <div class="stat-card" style="flex-direction: column; align-items: flex-start; padding: 25px; height: auto; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
@@ -293,7 +273,7 @@ function renderRequirements() {
                         <h3 style="font-size: 1.3rem; font-weight: 700; margin: 0; color:var(--text-main);">${req.grade}</h3>
                     </div>
                     <p style="font-weight: 600; color: var(--primary, #ea580c); margin-bottom: 18px; font-size: 0.95rem; background: var(--primary-light); padding: 4px 10px; border-radius: 6px;">${req.summary}</p>
-                    <ul style="padding-left: 20px; margin: 0; color: var(--text-sub); font-size: 0.9rem; line-height: 1.7; width:100%; box-sizing:border-box;">
+                    <ul style="padding-left: 20px; margin: 0; color: var(--text-sub); font-size: 0.9rem; line-height: 1.7; box-sizing:border-box;">
                         ${req.details.map(detail => `<li style="margin-bottom: 10px; word-break: keep-all; list-style-type: disc;">${detail}</li>`).join('')}
                     </ul>
                 </div>
@@ -302,34 +282,72 @@ function renderRequirements() {
     `;
 }
 
-// 데이터 제어 로직 함수들
+// 모의고사 전용 허브 대시보드 출력
+function renderMockExamDashboard() {
+    mockExamSection.innerHTML = `
+        <h2 style="margin-bottom: 10px; font-weight:700; color:var(--text-main); font-size:1.5rem;"><i class="fas fa-graduation-cap"></i> 실전 기출 모의고사 시스템</h2>
+        <p style="color:var(--text-sub); margin-bottom: 30px; font-size:0.95rem;">실제 한국산업인력공단(CBT) 시험 규정에 따른 문항 구성과 과목 제한시간 타이머가 활성화됩니다.</p>
+        
+        <div class="mock-grid" style="display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+            <div class="stat-card" style="flex-direction: column; align-items: flex-start; padding: 25px; height: auto;">
+                <h3>⚡ 전기기능사 모의고사</h3>
+                <p style="color:var(--text-sub); font-size:0.85rem; margin: 8px 0 15px 0;">이론 / 기기 / 설비 혼합형 범위</p>
+                <ul style="font-size:0.9rem; color:var(--text-main); margin-bottom:20px; padding-left:15px; line-height:1.6;">
+                    <li>문항 수: 60문항</li>
+                    <li>시험 시간: 60분</li>
+                    <li>합격 기준: 60점 이상 (36문항)</li>
+                </ul>
+                <button class="btn" id="btnMockCraftsman" style="width:100%; background:var(--primary); color:white; font-weight:600;">시험 시작</button>
+            </div>
+            
+            <div class="stat-card" style="flex-direction: column; align-items: flex-start; padding: 25px; height: auto;">
+                <h3>⚙️ 전기산업기사 모의고사</h3>
+                <p style="color:var(--text-sub); font-size:0.85rem; margin: 8px 0 15px 0;">5개 과목별 정형 추출 패키지</p>
+                <ul style="font-size:0.9rem; color:var(--text-main); margin-bottom:20px; padding-left:15px; line-height:1.6;">
+                    <li>문항 수: 100문항</li>
+                    <li>시험 시간: 150분 (2시간 30분)</li>
+                    <li>합격 기준: 평균 60점 (과락 주의)</li>
+                </ul>
+                <button class="btn" id="btnMockIndustrial" style="width:100%; background:#8B5CF6; color:white; font-weight:600;">시험 시작</button>
+            </div>
+
+            <div class="stat-card" style="flex-direction: column; align-items: flex-start; padding: 25px; height: auto;">
+                <h3>🏆 전기기사 모의고사</h3>
+                <p style="color:var(--text-sub); font-size:0.85rem; margin: 8px 0 15px 0;">제어공학 포함 종합 100문항 세트</p>
+                <ul style="font-size:0.9rem; color:var(--text-main); margin-bottom:20px; padding-left:15px; line-height:1.6;">
+                    <li>문항 수: 100문항</li>
+                    <li>시험 시간: 150분 (2시간 30분)</li>
+                    <li>합격 기준: 평균 60점 (과락 주의)</li>
+                </ul>
+                <button class="btn" id="btnMockEngineer" style="width:100%; background:#10B981; color:white; font-weight:600;">시험 시작</button>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('btnMockCraftsman').onclick = () => startQuiz(true, 'craftsman');
+    document.getElementById('btnMockIndustrial').onclick = () => startQuiz(true, 'industrial');
+    document.getElementById('btnMockEngineer').onclick = () => startQuiz(true, 'engineer');
+}
+
 function toggleFavorite(id) {
-    if (favorites.includes(id)) {
-        favorites = favorites.filter(fId => fId !== id);
-    } else {
-        favorites.push(id);
-    }
+    if (favorites.includes(id)) favorites = favorites.filter(fId => fId !== id);
+    else favorites.push(id);
     localStorage.setItem(STORAGE_KEYS.favorites, JSON.stringify(favorites));
     renderConcepts();
 }
 
 function toggleProgress(id) {
-    if (progress.includes(id)) {
-        progress = progress.filter(pId => pId !== id);
-    } else {
-        progress.push(id);
-    }
+    if (progress.includes(id)) progress = progress.filter(pId => pId !== id);
+    else progress.push(id);
     localStorage.setItem(STORAGE_KEYS.progress, JSON.stringify(progress));
     renderConcepts();
 }
 
-// 개념 상세 보기 모달 오픈
 let activeModalId = null;
 function openConceptModal(id) {
     activeModalId = id;
     const concept = electricianData.concepts.find(c => c.id === id);
     if (!concept) return;
-
     const cat = electricianData.categories.find(catItem => catItem.id === concept.category);
 
     document.getElementById('modalCategory').innerText = cat ? cat.name : '';
@@ -341,23 +359,18 @@ function openConceptModal(id) {
     const formulaBox = document.getElementById('modalFormula');
     if (concept.formula) {
         document.getElementById('modalFormulaSection').style.display = 'block';
-        // \n 줄바꿈 문자 정규식 처리
         formulaBox.innerHTML = concept.formula.replace(/\\n/g, '<br/>');
     } else {
         document.getElementById('modalFormulaSection').style.display = 'none';
     }
 
-    // 모달 버튼 디자인 동기화
     updateModalButtons();
-
     document.getElementById('conceptModal').classList.add('active');
 
-    // 수식 변환 적용
     if (window.MathJax && window.MathJax.typesetPromise) {
         window.MathJax.typesetPromise([formulaBox]).catch(err => console.log(err));
     }
 
-    // 모달 전용 클릭 바인딩 초기화 보완
     document.getElementById('modalFavoriteBtn').onclick = () => { toggleFavorite(activeModalId); updateModalButtons(); };
     document.getElementById('modalLearnedBtn').onclick = () => { toggleProgress(activeModalId); updateModalButtons(); };
 }
@@ -366,13 +379,11 @@ function updateModalButtons() {
     if (!activeModalId) return;
     const isFav = favorites.includes(activeModalId);
     const isLearned = progress.includes(activeModalId);
-
     const fBtn = document.getElementById('modalFavoriteBtn');
     const lBtn = document.getElementById('modalLearnedBtn');
 
     fBtn.className = `btn btn-favorite ${isFav ? 'active' : ''}`;
     fBtn.querySelector('i').className = isFav ? 'fas fa-heart' : 'far fa-heart';
-    
     lBtn.className = `btn btn-learned ${isLearned ? 'active' : ''}`;
     lBtn.querySelector('i').className = isLearned ? 'fas fa-check-circle' : 'far fa-check-circle';
 }
@@ -382,26 +393,77 @@ function closeConceptModal() {
     activeModalId = null;
 }
 
-// 퀴즈 모듈 전용 변수 및 로직
+// 퀴즈 및 실전 모의고사 코어 시스템 엔진
 let quizQuestions = [];
 let currentQuizIdx = 0;
 let quizScore = 0;
 
-function startQuiz() {
-    // 현재 필터링된 모드의 전체 문제 추출
-    const activePool = electricianData.concepts.filter(c => {
-        const cat = electricianData.categories.find(catItem => catItem.id === c.category);
-        return cat && cat.mode === currentMode;
-    });
+function startQuiz(isMock = false, grade = '') {
+    isMockExamActive = isMock;
+    currentMockGrade = grade;
+    clearInterval(mockTimerInterval);
 
-    if (activePool.length < 4) {
-        alert('퀴즈를 생성하기 위한 문제 풀이 데이터가 부족합니다.');
-        return;
+    const badgeEl = document.getElementById('quizBadgeType');
+
+    if (!isMock) {
+        // 일반 랜덤 10문항 퀴즈 모드
+        badgeEl.innerHTML = '<i class="fas fa-brain"></i> 실전 퀴즈';
+        badgeEl.style.background = '#ea580c';
+        
+        const activePool = electricianData.concepts.filter(c => {
+            const cat = electricianData.categories.find(catItem => catItem.id === c.category);
+            return cat && cat.mode === currentMode;
+        });
+
+        if (activePool.length < 4) {
+            alert('퀴즈용 풀이 데이터가 부족합니다.');
+            return;
+        }
+        quizQuestions = [...activePool].sort(() => 0.5 - Math.random()).slice(0, 10);
+    } else {
+        // 실전형 모의고사 모드 진입
+        const config = mockExamSettings[grade];
+        badgeEl.innerHTML = `<i class="fas fa-stopwatch"></i> ${config.name}`;
+        badgeEl.style.background = '#1e3a8a';
+
+        let examPool = [];
+        if (grade === 'craftsman') {
+            // 기능사: 해당 대과목 풀 60선 무작위 표본 추출
+            const filteredPool = electricianData.concepts.filter(c => config.subjects.includes(c.category));
+            examPool = filteredPool.sort(() => 0.5 - Math.random()).slice(0, config.totalQuestions);
+        } else {
+            // 기사/산업기사: 과목 밸런싱 유지형 동등 분할 추출 (각 과목당 최대 균등 선별)
+            config.subjects.forEach(subId => {
+                const subPool = electricianData.concepts.filter(c => c.category === subId);
+                const countPerSubject = Math.ceil(config.totalQuestions / config.subjects.length);
+                const sampled = subPool.sort(() => 0.5 - Math.random()).slice(0, countPerSubject);
+                examPool = [...examPool, ...sampled];
+            });
+            examPool = examPool.slice(0, config.totalQuestions); // 오차 보정 오버플로우 절삭
+        }
+
+        if (examPool.length === 0) {
+            alert('선택 종목에 매핑되는 문항 데이터베이스가 부족합니다.');
+            return;
+        }
+
+        quizQuestions = examPool.sort(() => 0.5 - Math.random());
+        mockTimeLeft = config.timeLimit;
+        
+        // 타이머 시동 연동
+        mockTimerInterval = setInterval(() => {
+            mockTimeLeft--;
+            const min = Math.floor(mockTimeLeft / 60);
+            const sec = mockTimeLeft % 60;
+            document.getElementById('quizProgressText').innerText = `남은시간 [ ${min}분 ${sec}초 ] | 문항 ${currentQuizIdx + 1}/${quizQuestions.length}`;
+            
+            if(mockTimeLeft <= 0) {
+                clearInterval(mockTimerInterval);
+                alert('제한 시간이 만료되었습니다. 시험지를 회수하고 자동 채점을 개시합니다.');
+                showQuizResult();
+            }
+        }, 1000);
     }
-
-    // 10문제 무작위 셔플 추출
-    const shuffled = [...activePool].sort(() => 0.5 - Math.random());
-    quizQuestions = shuffled.slice(0, Math.min(10, shuffled.length));
 
     currentQuizIdx = 0;
     quizScore = 0;
@@ -415,11 +477,19 @@ function startQuiz() {
 
 function showQuizQuestion() {
     const q = quizQuestions[currentQuizIdx];
-    document.getElementById('quizProgressText').innerText = `문제 ${currentQuizIdx + 1} / ${quizQuestions.length}`;
+    
+    if(!isMockExamActive) {
+        document.getElementById('quizProgressText').innerText = `문제 ${currentQuizIdx + 1} / ${quizQuestions.length}`;
+    } else {
+        const min = Math.floor(mockTimeLeft / 60);
+        const sec = mockTimeLeft % 60;
+        document.getElementById('quizProgressText').innerText = `남은시간 [ ${min}분 ${sec}초 ] | 문항 ${currentQuizIdx + 1}/${quizQuestions.length}`;
+    }
+    
     document.getElementById('quizQuestionText').innerText = q.definition;
     document.getElementById('quizNextBtn').style.display = 'none';
 
-    // 선지 생성용 셔플 오답 추출
+    // 4지 선지 난수 풀 구성
     const pool = electricianData.concepts.filter(c => c.id !== q.id);
     const wrongOptions = pool.sort(() => 0.5 - Math.random()).slice(0, 3).map(c => c.title);
     const options = [...wrongOptions, q.title].sort(() => 0.5 - Math.random());
@@ -432,7 +502,6 @@ function showQuizQuestion() {
         btn.className = 'quiz-option-btn';
         btn.style.cssText = 'width:100%; display:block; text-align:left; margin-bottom:10px; padding:12px 15px; border:1px solid var(--border); border-radius:8px; background:var(--bg-main); color:var(--text-main); font-weight:500; cursor:pointer;';
         btn.innerText = opt;
-        
         btn.addEventListener('click', () => handleQuizAnswer(btn, opt, q.title));
         container.appendChild(btn);
     });
@@ -440,7 +509,7 @@ function showQuizQuestion() {
 
 function handleQuizAnswer(selectedBtn, chosen, correct) {
     const buttons = document.querySelectorAll('.quiz-option-btn');
-    buttons.forEach(btn => btn.style.pointerEvents = 'none'); // 클릭 잠금
+    buttons.forEach(btn => btn.style.pointerEvents = 'none');
 
     if (chosen === correct) {
         selectedBtn.style.background = '#dcfce7';
@@ -452,7 +521,6 @@ function handleQuizAnswer(selectedBtn, chosen, correct) {
         selectedBtn.style.borderColor = '#ef4444';
         selectedBtn.style.color = '#b91c1c';
 
-        // 정답 시각화 표시
         buttons.forEach(btn => {
             if (btn.innerText === correct) {
                 btn.style.background = '#dcfce7';
@@ -469,6 +537,7 @@ function handleQuizAnswer(selectedBtn, chosen, correct) {
         if (currentQuizIdx < quizQuestions.length) {
             showQuizQuestion();
         } else {
+            clearInterval(mockTimerInterval);
             showQuizResult();
         }
     };
@@ -477,12 +546,32 @@ function handleQuizAnswer(selectedBtn, chosen, correct) {
 function showQuizResult() {
     document.getElementById('quizActiveScreen').style.display = 'none';
     document.getElementById('quizResultScreen').style.display = 'block';
-    document.getElementById('quizScoreText').innerText = quizScore;
-    document.getElementById('quizResultIcon').innerText = quizScore >= 7 ? '🏆' : '📁';
+    
+    const rTitle = document.getElementById('quizResultTitle');
+    const rMeta = document.getElementById('quizResultMeta');
+    const rIcon = document.getElementById('quizResultIcon');
+    const rScoreText = document.getElementById('quizScoreText');
 
-    document.getElementById('quizRetryBtn').onclick = startQuiz;
+    if (!isMockExamActive) {
+        // 일반 단발성 퀴즈 피드백
+        rTitle.innerText = "퀴즈 완료!";
+        rMeta.innerHTML = `총 ${quizQuestions.length}문제 중 <strong id="quizScoreText" style="color:var(--primary); font-size:1.5rem;">${quizScore}</strong>문제를 맞혔습니다.`;
+        rIcon.innerText = quizScore >= 7 ? '🏆' : '📁';
+        document.getElementById('quizRetryBtn').onclick = () => startQuiz(false);
+    } else {
+        // 국가시험 커트라인 판정 로직 변환 적용
+        const pct = Math.round((quizScore / quizQuestions.length) * 100);
+        const pass = pct >= 60;
+        
+        rTitle.innerText = pass ? "🎉 최종 합격!" : "📉 불합격 (과락 및 점수 미달)";
+        rIcon.innerText = pass ? "🥇" : "❌";
+        rMeta.innerHTML = `환산 점수: <strong style="font-size:1.6rem; color:${pass?'#10B981':'#EF4444'}">${pct}점</strong> (${quizQuestions.length}문항 중 ${quizScore}개 득점)<br/><span style="font-size:0.9rem; color:var(--text-sub);">합격 기준선: 60점 이상</span>`;
+        
+        document.getElementById('quizRetryBtn').onclick = () => startQuiz(true, currentMockGrade);
+    }
 }
 
 function closeQuizModal() {
+    clearInterval(mockTimerInterval);
     document.getElementById('quizModal').classList.remove('active');
 }
