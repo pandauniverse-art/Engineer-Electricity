@@ -3,207 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>전기 자격증 등급별 개념 관리 플랫폼</title>
+    <title>전기 마스터 스마트 학습 플랫폼</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
     <style>
         :root {
             --primary-color: #2b6cb0;
             --bg-color: #f7fafc;
             --card-bg: #ffffff;
             --border-color: #e2e8f0;
+            --text-main: #2d3748;
+            --text-muted: #718096;
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; color: #2d3748; }
-        .container { max-width: 1000px; margin: 0 auto; }
-        h1 { color: #1a202c; text-align: center; margin-bottom: 30px; }
-        
-        /* 설정 세션 */
-        .config-panel { background: var(--card-bg); padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid var(--border-color); display: flex; gap: 20px; justify-content: center; }
-        .group { display: flex; flex-direction: column; gap: 8px; }
-        label { font-weight: bold; font-size: 0.9rem; }
-        select { padding: 10px 15px; border-radius: 5px; border: 1px solid var(--border-color); font-size: 1rem; min-width: 180px; }
 
-        /* 메인 대시보드 구조 */
-        .dashboard { display: grid; grid-template-columns: 1fr; gap: 25px; }
-        .section-card { background: var(--card-bg); padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid var(--border-color); }
-        .section-card h3 { margin-top: 0; border-bottom: 2px solid var(--primary-color); padding-bottom: 8px; color: var(--primary-color); }
+        /* 다크모드 대응을 위한 확장 인터페이스 구조 */
+        body.dark-mode {
+            --bg-color: #1a202c;
+            --card-bg: #2d3748;
+            --border-color: #4a5568;
+            --text-main: #edf2f7;
+            --text-muted: #a0aec0;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--bg-color); 
+            margin: 0; 
+            padding: 20px; 
+            color: var(--text-main);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 30px; font-size: 2rem; }
+
+        /* 제어 패널 라인업 */
+        .control-panel { 
+            background: var(--card-bg); 
+            padding: 20px; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+            margin-bottom: 25px; 
+            border: 1px solid var(--border-color); 
+            display: flex; 
+            gap: 20px; 
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .select-group { display: flex; flex-direction: column; gap: 8px; }
+        .select-group label { font-weight: bold; font-size: 0.9rem; }
+        .select-group select { 
+            padding: 10px 15px; 
+            border-radius: 6px; 
+            border: 1px solid var(--border-color); 
+            font-size: 1rem; 
+            min-width: 200px;
+            background-color: var(--card-bg);
+            color: var(--text-main);
+        }
+
+        /* 대시보드 그리드 배치 (2단 레이아웃) */
+        .main-layout { 
+            display: grid; 
+            grid-template-columns: 300px 1fr; 
+            gap: 25px; 
+        }
+        @media (max-width: 768px) {
+            .main-layout { grid-template-columns: 1fr; }
+        }
+
+        /* 사이드바 영역 (과목 카테고리 및 정보 위젯) */
+        .sidebar { display: flex; flex-direction: column; gap: 20px; }
+        .widget-card { 
+            background: var(--card-bg); 
+            padding: 20px; 
+            border-radius: 8px; 
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .widget-card h5 { margin-top: 0; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 2px solid var(--primary-color); padding-bottom: 6px; }
+
+        /* 동적 과목 카테고리 버튼 컴포넌트 */
+        .category-container { display: flex; flex-direction: column; gap: 10px; }
+        .category-btn { 
+            padding: 12px 15px; 
+            background: var(--card-bg); 
+            border: 1px solid var(--border-color); 
+            border-radius: 6px; 
+            text-align: left; 
+            font-size: 0.95rem; 
+            font-weight: 500;
+            color: var(--text-main);
+            cursor: pointer; 
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .category-btn:hover { background: #e2e8f0; transform: translateX(3px); }
+        body.dark-mode .category-btn:hover { background: #4a5568; }
+
+        /* 핵심 개념 카드 아이템 렌더링 스타일 구조 */
+        .content-area { display: flex; flex-direction: column; gap: 20px; }
+        .concept-card { 
+            background: var(--card-bg); 
+            padding: 25px; 
+            border-radius: 8px; 
+            border: 1px solid var(--border-color); 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+        .card-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .concept-title { margin: 0; font-size: 1.25rem; color: var(--text-main); }
         
-        /* 리스트 스타일 */
-        .badge-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
-        .badge { background: #e2e8f0; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; }
-        .concept-item { padding: 15px; border-bottom: 1px solid var(--border-color); }
-        .concept-item:last-child { border-bottom: none; }
-        .concept-title { font-weight: bold; font-size: 1.1rem; color: #2d3748; margin-bottom: 5px; }
-        .concept-desc { font-size: 0.95rem; color: #4a5568; line-height: 1.5; }
+        /* 빈도 등급별 뱃지 컬러링 */
+        .freq-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
+        .freq-상 { background: #fed7d7; color: #c53030; }
+        .freq-중 { background: #feebc8; color: #c05621; }
+        .freq-하 { background: #edf2f7; color: #4a5568; }
+
+        .concept-def { font-size: 1rem; line-height: 1.6; color: var(--text-main); margin-bottom: 15px; }
+        .concept-formula { 
+            background: #f8fafc; 
+            padding: 15px; 
+            border-radius: 6px; 
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+        }
+        body.dark-mode .concept-formula { background: #1a202c; }
+
+        /* 자격요건 및 모의고사 세팅 리스트용 세부 구색 스타일 */
+        .no-data { text-align: center; color: var(--text-muted); padding: 4px 0; font-style: italic; }
+        .details-list { padding-left: 20px; margin: 8px 0; font-size: 0.9rem; line-height: 1.5; }
+        .details-list li { margin-bottom: 6px; }
+        .mock-settings-card ul { padding-left: 20px; font-size: 0.9rem; line-height: 1.6; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>전기 자격증 등급별 데이터 관리 매핑 플랫폼</h1>
+    <h1>⚡ 전기 자격증 등급별 핵심 스코프 학습 플랫폼 ⚡</h1>
     
-    <div class="config-panel">
-        <div class="group">
-            <label for="levelSelect">목표 자격증 등급</label>
-            <select id="levelSelect" onchange="renderPlatform()">
+    <div class="control-panel">
+        <div class="select-group">
+            <label for="levelSelect">목표 자격증 선택</label>
+            <select id="levelSelect">
                 <option value="craftsman">전기기능사</option>
                 <option value="industrial_engineer">전기산업기사</option>
                 <option value="engineer" selected>전기기사</option>
             </select>
         </div>
-        <div class="group">
-            <label for="modeSelect">학습 모드</label>
-            <select id="modeSelect" onchange="renderPlatform()">
+        <div class="select-group">
+            <label for="modeSelect">학습 검토 모드</label>
+            <select id="modeSelect">
                 <option value="written">필기 모드 (Written)</option>
                 <option value="practical">실기 모드 (Practical)</option>
             </select>
         </div>
     </div>
 
-    <div class="dashboard">
-        <div class="section-card" id="subjectSection">
-            <h3>해당 등급 필수 필수 과목</h3>
-            <div class="badge-list" id="subjectList"></div>
+    <div class="main-layout">
+        
+        <div class="sidebar">
+            <div class="widget-card">
+                <h5>📚 소속 과목 카테고리</h5>
+                <div class="category-container" id="categoryList">
+                    </div>
+            </div>
+
+            <div class="widget-card" id="qualificationInfo">
+                </div>
+
+            <div class="widget-card" id="mockExamInfo">
+                </div>
         </div>
 
-        <div class="section-card">
-            <h3 id="contentSectionTitle">맞춤형 필수 개념 정리</h3>
-            <div id="contentList"></div>
-        </div>
+        <div class="content-area" id="conceptList">
+            </div>
+
     </div>
 </div>
 
-<script>
-// 등급별 과목 및 필기/실기 연동 통합 데이터 마스터 객체
-const appData = {
-  "levels": {
-    "craftsman": { "name": "전기기능사" },
-    "industrial_engineer": { "name": "전기산업기사" },
-    "engineer": { "name": "전기기사" }
-  },
-  "subjects": [
-    { "id": "theory", "name": "전기이론", "target_levels": ["craftsman"] },
-    { "id": "machinery", "name": "전기기기", "target_levels": ["craftsman", "industrial_engineer", "engineer"] },
-    { "id": "installation", "name": "전기설비", "target_levels": ["craftsman"] },
-    { "id": "magnetism", "name": "전기자기학", "target_levels": ["industrial_engineer", "engineer"] },
-    { "id": "power", "name": "전력공학", "target_levels": ["industrial_engineer", "engineer"] },
-    { "id": "circuit", "name": "회로이론", "target_levels": ["industrial_engineer", "engineer"] },
-    { "id": "control", "name": "제어공학", "target_levels": ["engineer"] },
-    { "id": "regulations", "name": "전기설비기술기준", "target_levels": ["industrial_engineer", "engineer"] }
-  ],
-  "concepts": [
-    {
-      "id": "C001",
-      "subject_id": "machinery",
-      "title": "전동기 토크 (Torque) 공식 적용",
-      "target_levels": ["craftsman", "industrial_engineer", "engineer"],
-      "description": {
-        "craftsman": "사칙연산 중심 공식 매핑: T = 0.975 * P / N [kg·m] 유도 및 기본 풀이 중심",
-        "industrial_engineer": "복소수 및 벡터 개념이 가미된 3상 유도전동기 특성 유도식 해석 적용",
-        "engineer": "모터 구조 스펙(극 수 P, 총 도체 수 Z, 병렬회로 수 a)을 이용한 원초적 토크 공식 융합 해석"
-      }
-    },
-    {
-      "id": "C002",
-      "subject_id": "control",
-      "title": "라플라스 변환 및 특성방정식 안정도 판별",
-      "target_levels": ["engineer"],
-      "description": {
-        "engineer": "[기사 전용 과목] 루스-후르비츠 안정도 판별법, 근궤적법 및 보드선도 이득여유 계산법 매핑"
-      }
-    },
-    {
-      "id": "C003",
-      "subject_id": "power",
-      "title": "퍼센트 임피던스(%Z)기반 고장 해석",
-      "target_levels": ["industrial_engineer", "engineer"],
-      "description": {
-        "industrial_engineer": "기본 단락전류 공식 식별 및 %Z 변환을 통한 고장점 정격전류 도출 계산",
-        "engineer": "수변전 도면 전체 계통 스케일 해석 연계, KEC 규정 반영 정격차단전류[kA] 및 상위 차단기 트리핑 융합 해석"
-      }
-    }
-  ],
-  "practical_modes": [
-    {
-      "id": "P001",
-      "title": "시퀀스 회로도 도면 넘버링 및 실제 배선",
-      "target_levels": ["craftsman"],
-      "focus": "100% 실기 작업형 베이스. EOCR, MC, 타이머 릴레이 내부 결선 핀번호 지정법 중심 구조 설계"
-    },
-    {
-      "id": "P002",
-      "title": "수변전 설비 단선도(Skeleton) 분석 및 기기 선정",
-      "target_levels": ["industrial_engineer", "engineer"],
-      "focus": "주관식 필답형. 가스절연형(ASS)과 기중절연형(AISS), 자동부하전환(ALTS) 명칭 기입 및 CT비 산정 공식 마스터"
-    },
-    {
-      "id": "P003",
-      "title": "전력시설물 공사 감리업무 수행 기준 서술",
-      "target_levels": ["engineer"],
-      "focus": "[기사 실기 전용 심화] 감리원의 착공신고서 적합성 검토 항목 및 시공 계획서 승인 절차 암기 프로토콜 데이터"
-    }
-  ]
-};
-
-// 메인 렌더링 컨트롤러 함수
-function renderPlatform() {
-    const selectedLevel = document.getElementById("levelSelect").value;
-    const selectedMode = document.getElementById("modeSelect").value;
-    
-    const subjectListDiv = document.getElementById("subjectList");
-    const contentListDiv = document.getElementById("contentList");
-    const contentSectionTitle = document.getElementById("contentSectionTitle");
-    const subjectSection = document.getElementById("subjectSection");
-
-    // 1. 과목 섹션 처리 (필기 모드일 때만 과목 대시보드 활성화)
-    if (selectedMode === "written") {
-        subjectSection.style.display = "block";
-        subjectListDiv.innerHTML = "";
-        const filteredSubjects = appData.subjects.filter(sub => sub.target_levels.includes(selectedLevel));
-        filteredSubjects.forEach(sub => {
-            subjectListDiv.innerHTML += `<span class="badge">${sub.name}</span>`;
-        });
-        contentSectionTitle.innerText = "필기 과목별 매핑 기본 개념";
-    } else {
-        subjectSection.style.display = "none";
-        contentSectionTitle.innerText = "실기 시험 형태별 핵심 실무 훈련 개념";
-    }
-
-    // 2. 메인 콘텐츠 필터링 연동
-    contentListDiv.innerHTML = "";
-    
-    if (selectedMode === "written") {
-        // 필기 개념 바인딩
-        const filteredConcepts = appData.concepts.filter(con => con.target_levels.includes(selectedLevel));
-        if (filteredConcepts.length === 0) {
-            contentListDiv.innerHTML = "<p class='concept-item'>해당 등급에 매핑된 필기 데이터가 없습니다.</p>";
-            return;
-        }
-        filteredConcepts.forEach(con => {
-            const subjectName = appData.subjects.find(s => s.id === con.subject_id).name;
-            contentListDiv.innerHTML += `
-                <div class="concept-item">
-                    <div class="concept-title">[${subjectName}] ${con.title}</div>
-                    <div class="concept-desc">${con.description[selectedLevel] || con.description["engineer"]}</div>
-                </div>
-            `;
-        });
-    } else {
-        // 실기 개념 바인딩
-        const filteredPracticals = appData.practical_modes.filter(prac => prac.target_levels.includes(selectedLevel));
-        filteredPracticals.forEach(prac => {
-            contentListDiv.innerHTML += `
-                <div class="concept-item">
-                    <div class="concept-title">${prac.title}</div>
-                    <div class="concept-desc">🔎 <strong>중점 매핑 포인트:</strong> ${prac.focus}</div>
-                </div>
-            `;
-        });
-    }
-}
-
-// 윈도우 로드 초기 빌드 구동
-window.onload = function() {
-    renderPlatform();
-};
-</script>
 </body>
 </html>
