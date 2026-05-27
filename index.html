@@ -131,6 +131,33 @@
         .details-list li { margin-bottom: 6px; }
         .mock-settings-card ul { padding-left: 20px; font-size: 0.9rem; line-height: 1.6; color: #4a5568; }
         .mock-settings-card li { margin-bottom: 6px; }
+
+        /* 🚨 실전 모의고사 모드 스펙 스타일 */
+        .mock-paper-box {
+            background: var(--card-bg);
+            padding: 35px;
+            border-radius: 10px;
+            border: 2px solid #cbd5e1;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+        }
+        .mock-opt-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            text-align: left;
+            padding: 15px 20px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: white;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .mock-opt-btn:hover {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+        }
     </style>
 </head>
 <body>
@@ -152,13 +179,14 @@
             <select id="modeSelect">
                 <option value="written">필기 모드 (Written)</option>
                 <option value="practical">실기 모드 (Practical)</option>
+                <option value="mockexam">⚡ 실전 모의고사</option>
             </select>
         </div>
     </div>
 
-    <div class="main-layout">
+    <div class="main-layout" id="mainLayoutStructure">
         
-        <div class="sidebar">
+        <div class="sidebar" id="sidebarSection">
             <div class="widget-card" id="subjectSection">
                 <h5>📚 소속 과목 카테고리</h5>
                 <div class="category-container" id="categoryList"></div>
@@ -170,6 +198,8 @@
         </div>
 
         <div class="content-area" id="conceptList"></div>
+
+        <div class="content-area" id="mockExamContainer" style="display: none;"></div>
 
     </div>
 </div>
@@ -464,7 +494,7 @@ const mockExamSettings = {
     passingScore: 60,
     subjects: ['foundation', 'machine', 'regulation']
   },
-  industrial: {
+  industrial_engineer: {
     name: "전기산업기사 필기 모의고사",
     timeLimit: 150 * 60,
     totalQuestions: 100,
@@ -483,14 +513,50 @@ const mockExamSettings = {
 // ==========================================================================
 // 비즈니스 로직 및 동적 UI 바인딩 코어 엔진
 // ==========================================================================
+
+// 모의고사 진행용 엔진 런타임 글로벌 상태 변수
+let mockTimerInterval = null;
+let mockTimeLeft = 0;
+let mockQuestions = [];
+let currentMockIdx = 0;
+let mockScore = 0;
+
 function renderPlatform() {
   const selectedLevel = document.getElementById("levelSelect") ? document.getElementById("levelSelect").value : "engineer";
   const selectedMode = document.getElementById("modeSelect") ? document.getElementById("modeSelect").value : "written";
   
   const categoryContainer = document.getElementById("categoryList");
   const conceptContainer = document.getElementById("conceptList");
+  const mockExamContainer = document.getElementById("mockExamContainer");
+  const sidebarSection = document.getElementById("sidebarSection");
+  const mainLayoutStructure = document.getElementById("mainLayoutStructure");
   const requirementContainer = document.getElementById("qualificationInfo");
   const mockSettingsContainer = document.getElementById("mockExamInfo");
+
+  // 🚨 [조건 확인 분기] 모의고사(mockexam) 러닝 타임 가독성 최적화 대응 스위치 개설
+  if (selectedMode === 'mockexam') {
+      clearInterval(mockTimerInterval);
+      
+      // 2단 그리드에서 가독성이 깨지므로 메인을 1줄 전체화면(Full) 구조로 확장하고 사이드바 히든
+      if(sidebarSection) sidebarSection.style.display = 'none';
+      if(mainLayoutStructure) mainLayoutStructure.style.gridTemplateColumns = '1fr';
+      if(conceptContainer) conceptContainer.style.display = 'none';
+      
+      if(mockExamContainer) {
+          mockExamContainer.style.display = 'block';
+          initMockExamCore(selectedLevel); // 무작위 문항 구성 시동 호출
+      }
+      return; // 일반 렌더링 로직 강제 조기 종료 인터록
+  }
+
+  // 필기/실기 표준 검토 모드 복원 제어부
+  if(mockExamContainer) mockExamContainer.style.display = 'none';
+  if(conceptContainer) conceptContainer.style.display = 'flex';
+  if(sidebarSection) sidebarSection.style.display = 'flex';
+  if(mainLayoutStructure) {
+      // 768px 미만 미디어 쿼리 방어 연동 복원
+      mainLayoutStructure.style.gridTemplateColumns = window.innerWidth <= 768 ? '1fr' : '320px 1fr';
+  }
 
   // 1. 카테고리(과목) 렌더링 엔진 
   if (categoryContainer) {
@@ -512,7 +578,7 @@ function renderPlatform() {
     }
   }
 
-  // 2. 핵심 개념 리스트 렌더링 엔진 (오류 부분 수정)
+  // 2. 핵심 개념 리스트 렌더링 엔진
   if (conceptContainer) {
     conceptContainer.innerHTML = "";
     const filteredConcepts = electricianData.concepts.filter(con => {
@@ -539,7 +605,6 @@ function renderPlatform() {
       });
     }
     
-    // MathJax 동적 수식 컴파일 갱신
     if (window.MathJax && window.MathJax.typesetPromise) {
       window.MathJax.typesetPromise();
     }
@@ -567,8 +632,7 @@ function renderPlatform() {
   // 4. 모의고사 규칙 바인딩
   if (mockSettingsContainer) {
     mockSettingsContainer.innerHTML = "";
-    const mockKey = selectedLevel === "craftsman" ? "craftsman" : (selectedLevel === "industrial_engineer" ? "industrial" : "engineer");
-    const settings = mockExamSettings[mockKey];
+    const settings = mockExamSettings[selectedLevel];
 
     if (settings) {
       mockSettingsContainer.innerHTML = `
@@ -617,6 +681,123 @@ function filterBySpecificCategory(categoryId) {
   }
 }
 
+// 🚨 모의고사 시험 구동 코어 핵심 엔진 로직 세트
+function initMockExamCore(gradeKey) {
+    const config = mockExamSettings[gradeKey];
+    if(!config) return;
+
+    // 현재 선택한 등급 조건에 맞는 과목 문항 필터 후 무작위 추출 산출식
+    const matchPool = electricianData.concepts.filter(c => config.subjects.includes(c.category));
+    
+    // 모의고사 전용 가독성을 확보하기 위해 디버깅/실전 밸런싱 절삭 (최대 가용 문항 수 조율 자동화)
+    const finalTargetCount = Math.min(config.totalQuestions, matchPool.length, 20); // 풀 데이터 수에 맞게 유동 조절
+
+    mockQuestions = matchPool.sort(() => 0.5 - Math.random()).slice(0, finalTargetCount);
+    currentMockIdx = 0;
+    mockScore = 0;
+    mockTimeLeft = config.timeLimit;
+
+    // 인터벌 시동 연동
+    mockTimerInterval = setInterval(() => {
+        mockTimeLeft--;
+        if(mockTimeLeft <= 0) {
+            clearInterval(mockTimerInterval);
+            alert('시험 제한시간이 종료되었습니다! 즉시 답안지를 제출합니다.');
+            renderMockResultScreen();
+        }
+        updateMockTimerUI();
+    }, 1000);
+
+    renderMockQuestionScreen();
+}
+
+function updateMockTimerUI() {
+    const el = document.getElementById('mockClock');
+    if(!el) return;
+    const min = Math.floor(mockTimeLeft / 60);
+    const sec = mockTimeLeft % 60;
+    el.innerText = `⏳ 남은 시간: ${min}분 ${sec}초`;
+}
+
+// 실전 CBT형 와이드 가독성 전용 문제 출력 빌더
+function renderMockQuestionScreen() {
+    const container = document.getElementById('mockExamContainer');
+    const q = mockQuestions[currentMockIdx];
+    if(!container || !q) return;
+
+    const pool = electricianData.concepts.filter(c => c.id !== q.id);
+    const wrongAnswers = pool.sort(() => 0.5 - Math.random()).slice(0, 3).map(c => c.title);
+    const shuffledOptions = [...wrongAnswers, q.title].sort(() => 0.5 - Math.random());
+    const numberIcons = ['①', '②', '③', '④'];
+
+    const min = Math.floor(mockTimeLeft / 60);
+    const sec = mockTimeLeft % 60;
+
+    container.innerHTML = `
+        <div class="mock-paper-box">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #e2e8f0; padding-bottom:15px; margin-bottom:20px;">
+                <span style="font-weight:bold; color:var(--primary-color); font-size:1.2rem;"><i class="fas fa-edit"></i> CBT 국가기술자격 실전 모의고사 실전장</span>
+                <span id="mockClock" style="font-weight:bold; color:#e53e3e; background:#fff5f5; padding:6px 12px; border-radius:6px;">⏳ 남은 시간: ${min}분 ${sec}초</span>
+            </div>
+            
+            <div style="color:var(--text-muted); font-weight:bold; margin-bottom:8px; font-size:0.9rem;">문항 번호: ${currentMockIdx + 1} / ${mockQuestions.length}</div>
+            <div style="font-size:1.3rem; font-weight:bold; line-height:1.6; color:#1a202c; margin-bottom:30px; word-break:keep-all;">
+                ${q.definition}
+            </div>
+            
+            <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
+                ${shuffledOptions.map((opt, index) => `
+                    <button class="mock-opt-btn" data-answer="${opt}">
+                        <span style="font-weight:bold; color:var(--primary-color); margin-right:12px; font-size:1.1rem;">${numberIcons[index]}</span>
+                        <span style="font-weight:500;">${opt}</span>
+                    </button>
+                `).join('')}
+            </div>
+        </div>
+    `;
+
+    // 보기 버튼들에 클릭 이벤트 바인딩
+    container.querySelectorAll('.mock-opt-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const userChoice = btn.getAttribute('data-answer');
+            if(userChoice === q.title) {
+                mockScore++;
+            }
+
+            // 인덱스 증감 후 라우팅 디스패치
+            currentMockIdx++;
+            if(currentMockIdx < mockQuestions.length) {
+                renderMockQuestionScreen();
+            } else {
+                clearInterval(mockTimerInterval);
+                renderMockResultScreen();
+            }
+        });
+    });
+}
+
+// 시험 성적 평점 환산 화면 출력기
+function renderMockResultScreen() {
+    const container = document.getElementById('mockExamContainer');
+    const scorePct = Math.round((mockScore / mockQuestions.length) * 100);
+    const isPass = scorePct >= 60;
+
+    container.innerHTML = `
+        <div class="mock-paper-box" style="text-align:center; padding:50px 20px;">
+            <div style="font-size:4.5rem; margin-bottom:15px;">${isPass ? '🎉' : '😰'}</div>
+            <h2 style="font-size:1.8rem; font-weight:bold; color:#1a202c; margin-bottom:10px;">
+                ${isPass ? '모의고사 합격 기준 달성!' : '불합격 (점수 미달)'}
+            </h2>
+            <p style="font-size:1.2rem; color:#4a5568; margin-bottom:30px;">
+                채점 결과 점수는 <strong style="font-size:1.5rem; color:${isPass ? '#2f855a' : '#c53030'}">${scorePct}점</strong> 입니다. (${mockQuestions.length}문항 중 ${mockScore}개 정답)
+            </p>
+            <button onclick="renderPlatform()" style="background:var(--primary-color); color:white; border:none; padding:12px 28px; border-radius:6px; font-size:1rem; font-weight:bold; cursor:pointer; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+                오답 검토 및 메인으로 복귀
+            </button>
+        </div>
+    `;
+}
+
 // DOM 생태계 초기 로드 즉시 인터페이스 매핑 가동
 document.addEventListener("DOMContentLoaded", () => {
   const levelSelect = document.getElementById("levelSelect");
@@ -625,7 +806,15 @@ document.addEventListener("DOMContentLoaded", () => {
   if (levelSelect) levelSelect.addEventListener("change", renderPlatform);
   if (modeSelect) modeSelect.addEventListener("change", renderPlatform);
   
-  // 런타임 구동
+  // 리사이즈 시 화면 밀림 방어 코드 연동
+  window.addEventListener('resize', () => {
+      const mainLayoutStructure = document.getElementById("mainLayoutStructure");
+      if(mainLayoutStructure && currentMode !== 'mockexam') {
+          mainLayoutStructure.style.gridTemplateColumns = window.innerWidth <= 768 ? '1fr' : '320px 1fr';
+      }
+  });
+
+  // 최초 런타임 구동
   renderPlatform();
 });
 </script>
