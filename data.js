@@ -1,227 +1,234 @@
-// ============================================
-// 전기기사 스마트 학습 플랫폼 - 핵심 개념 데이터베이스 (총 200선 완결판)
-// 모든 수식은 MathJax(LaTeX) 분수/기호 문법 적용 완료
-// ============================================
+// ==========================================================================
+// 전기기능사·산업기사·기사 통합 스마트 학습 플랫폼 - 마스터 데이터베이스 및 비즈니스 로직
+// KEC 규정 및 등급별 과목/모의고사/자격요건 데이터 스코프 매핑 완료
+// ==========================================================================
 
 const electricianData = {
+  // 등급 맵 정의 (기능사, 산업기사, 기사)
+  levels: {
+    craftsman: { name: "전기기능사", has_practical_work: true },
+    industrial_engineer: { name: "전기산업기사", has_practical_work: false },
+    engineer: { name: "전기기사", has_practical_work: false }
+  },
+
   categories: [
-    { id: 'foundation', mode: 'written', name: '기초전기·수학', icon: '📐', color: '#64748b' },
-    { id: 'electromagnetics', mode: 'written', name: '전기자기학', icon: '🧲', color: '#8B5CF6' },
-    { id: 'power', mode: 'written', name: '전력공학', icon: '🔌', color: '#10B981' },
-    { id: 'machine', mode: 'written', name: '전기기기', icon: '⚙️', color: '#F59E0B' },
-    { id: 'circuit', mode: 'written', name: '회로이론', icon: '🔄', color: '#3B82F6' },
-    { id: 'control', mode: 'written', name: '제어공학', icon: '🎛️', color: '#EC4899' },
-    { id: 'regulation', mode: 'written', name: '전기설비기준', icon: '📋', color: '#EF4444' },
-    { id: 'prac_short', mode: 'practical', name: '단답·수변전', icon: '📝', color: '#f43f5e' },
-    { id: 'prac_sequence', mode: 'practical', name: '시퀀스·PLC', icon: '🔀', color: '#0ea5e9' },
-    { id: 'prac_table', mode: 'practical', name: '테이블스펙', icon: '📊', color: '#d946ef' }
+    { id: 'foundation', mode: 'written', name: '기초전기·수학', icon: '📐', color: '#64748b', levels: ['craftsman'] },
+    { id: 'electromagnetics', mode: 'written', name: '전기자기학', icon: '🧲', color: '#8B5CF6', levels: ['industrial_engineer', 'engineer'] },
+    { id: 'power', mode: 'written', name: '전력공학', icon: '🔌', color: '#10B981', levels: ['industrial_engineer', 'engineer'] },
+    { id: 'machine', mode: 'written', name: '전기기기', icon: '⚙️', color: '#F59E0B', levels: ['craftsman', 'industrial_engineer', 'engineer'] },
+    { id: 'circuit', mode: 'written', name: '회로이론', icon: '🔄', color: '#3B82F6', levels: ['industrial_engineer', 'engineer'] },
+    { id: 'control', mode: 'written', name: '제어공학', icon: '🎛️', color: '#EC4899', levels: ['engineer'] },
+    { id: 'regulation', mode: 'written', name: '전기설비기준', icon: '📋', color: '#EF4444', levels: ['craftsman', 'industrial_engineer', 'engineer'] },
+    { id: 'prac_short', mode: 'practical', name: '단답·수변전', icon: '📝', color: '#f43f5e', levels: ['industrial_engineer', 'engineer'] },
+    { id: 'prac_sequence', mode: 'practical', name: '시퀀스·PLC', icon: '🔀', color: '#0ea5e9', levels: ['craftsman', 'industrial_engineer', 'engineer'] },
+    { id: 'prac_table', mode: 'practical', name: '테이블스펙', icon: '📊', color: '#d946ef', levels: ['industrial_engineer', 'engineer'] }
   ],
   
   concepts: [
     // ===== 0. 기초전기·수학 (20개) =====
-    { id: 101, category: 'foundation', title: '옴의 법칙 (Ohm\'s Law)', definition: '전류는 전압에 비례하고 저항에 반비례한다.', formula: '$$ I = \\frac{V}{R} $$\\n$$ V = I \\times R $$\\n$$ R = \\frac{V}{I} $$', frequency: '상' },
-    { id: 102, category: 'foundation', title: '저항의 직/병렬 합성', definition: '병렬 저항은 역수의 합을 역수 취한다.', formula: '$$ R_s = R_1 + R_2 $$\\n$$ R_p = \\frac{R_1 \\times R_2}{R_1 + R_2} $$', frequency: '상' },
-    { id: 103, category: 'foundation', title: '피타고라스와 삼각함수', definition: '벡터 해석(역률, 무효율)의 기초.', formula: '$$ \\sin\\theta = \\frac{\\text{높이}}{\\text{빗변}} $$\\n$$ \\cos\\theta = \\frac{\\text{밑변}}{\\text{빗변}} $$', frequency: '상' },
-    { id: 104, category: 'foundation', title: '전력의 3요소', definition: '유효, 무효, 피상전력.', formula: '$$ P = VI \\cos\\theta $$\\n$$ P_r = VI \\sin\\theta $$\\n$$ P_a = VI = \\sqrt{P^2 + P_r^2} $$', frequency: '상' },
-    { id: 105, category: 'foundation', title: '복소수와 임피던스', definition: '교류 저항의 크기와 위상.', formula: '$$ Z = R + jX $$\\n$$ |Z| = \\sqrt{R^2 + X^2} $$', frequency: '상' },
-    { id: 106, category: 'foundation', title: '각주파수 (ω)', definition: '1초당 회전 각도(라디안).', formula: '$$ \\omega = 2\\pi f \\text{ [rad/s]} $$', frequency: '중' },
-    { id: 107, category: 'foundation', title: '전력량과 에너지', definition: '사용한 전력의 총합.', formula: '$$ W = P \\times t \\text{ [J]} $$\\n$$ 1\\text{kWh} = 3.6 \\times 10^6 \\text{ J} $$', frequency: '상' },
-    { id: 108, category: 'foundation', title: '줄의 법칙 (Joule\'s Law)', definition: '전류가 흐를 때 발생하는 열량.', formula: '$$ H = 0.24 I^2 R t \\text{ [cal]} $$', frequency: '중' },
-    { id: 109, category: 'foundation', title: '플레밍의 법칙', definition: '왼손(전동기/힘), 오른손(발전기/기전력).', formula: '$$ \\text{엄지(F,v) - 검지(B) - 중지(I,e)} $$', frequency: '상' },
-    { id: 110, category: 'foundation', title: '실효값과 평균값', definition: '교류의 크기 기준. 정현파 기준식.', formula: '$$ V_{rms} = \\frac{V_m}{\\sqrt{2}} $$\\n$$ V_{avg} = \\frac{2V_m}{\\pi} $$', frequency: '상' },
-    { id: 111, category: 'foundation', title: '파고율과 파형율', definition: '파형의 날카로움과 평활도.', formula: '$$ \\text{파고율} = \\frac{\\text{최대값}}{\\text{실효값}} $$\\n$$ \\text{파형율} = \\frac{\\text{실효값}}{\\text{평균값}} $$', frequency: '중' },
-    { id: 112, category: 'foundation', title: '컨덕턴스와 어드미턴스', definition: '저항과 임피던스의 역수.', formula: '$$ G = \\frac{1}{R} \\text{ [S]} $$\\n$$ Y = \\frac{1}{Z} = G + jB $$', frequency: '중' },
-    { id: 113, category: 'foundation', title: '호도법 (Radian)', definition: '각도를 π로 변환.', formula: '$$ 1 \\text{ rad} = \\frac{180}{\\pi}^\\circ $$', frequency: '하' },
-    { id: 114, category: 'foundation', title: '키르히호프의 법칙', definition: 'KCL(전류)과 KVL(전압).', formula: '$$ \\sum I_{in} = \\sum I_{out} $$\\n$$ \\sum V_{rise} = \\sum V_{drop} $$', frequency: '상' },
-    { id: 115, category: 'foundation', title: '정전유도 현상', definition: '대전체 접근 시 전하 분리.', formula: '$$ Q = CV $$', frequency: '중' },
-    { id: 116, category: 'foundation', title: '벡터 내적(전력)', definition: '유효전력을 구하는 벡터 연산.', formula: '$$ \\vec{A} \\cdot \\vec{B} = |A||B| \\cos\\theta $$', frequency: '중' },
-    { id: 117, category: 'foundation', title: '벡터 외적(전자력)', definition: '힘의 방향과 크기를 구하는 연산.', formula: '$$ |\\vec{A} \\times \\vec{B}| = |A||B| \\sin\\theta $$', frequency: '중' },
-    { id: 118, category: 'foundation', title: '접두어 단위', definition: '크기 변환.', formula: '$$ \\text{M} = 10^6, \\text{k} = 10^3 $$\\n$$ \\text{m} = 10^{-3}, \\mu = 10^{-6} $$', frequency: '상' },
-    { id: 119, category: 'foundation', title: '전하량 (Q)', definition: '전류와 시간의 곱.', formula: '$$ Q = I \\times t \\text{ [C]} $$', frequency: '상' },
-    { id: 120, category: 'foundation', title: '전압 분배 법칙', definition: '직렬 회로에서 전압이 저항에 비례하여 분배.', formula: '$$ V_1 = V \\frac{R_1}{R_1 + R_2} $$', frequency: '상' },
+    { id: 101, category: 'foundation', levels: ['craftsman'], title: '옴의 법칙 (Ohm\'s Law)', definition: '전류는 전압에 비례하고 저항에 반비례한다.', formula: '$$ I = \\frac{V}{R} $$\\n$$ V = I \\times R $$\\n$$ R = \\frac{V}{I} $$', frequency: '상' },
+    { id: 102, category: 'foundation', levels: ['craftsman'], title: '저항의 직/병렬 합성', definition: '병렬 저항은 역수의 합을 역수 취한다.', formula: '$$ R_s = R_1 + R_2 $$\\n$$ R_p = \\frac{R_1 \\times R_2}{R_1 + R_2} $$', frequency: '상' },
+    { id: 103, category: 'foundation', levels: ['craftsman'], title: '피타고라스와 삼각함수', definition: '벡터 해석(역률, 무효율)의 기초.', formula: '$$ \\sin\\theta = \\frac{\\text{높이}}{\\text{빗변}} $$\\n$$ \\cos\\theta = \\frac{\\text{밑변}}{\\text{빗변}} $$', frequency: '상' },
+    { id: 104, category: 'foundation', levels: ['craftsman'], title: '전력의 3요소', definition: '유효, 무효, 피상전력.', formula: '$$ P = VI \\cos\\theta $$\\n$$ P_r = VI \\sin\\theta $$\\n$$ P_a = VI = \\sqrt{P^2 + P_r^2} $$', frequency: '상' },
+    { id: 105, category: 'foundation', levels: ['craftsman'], title: '복소수와 임피던스', definition: '교류 저항의 크기와 위상.', formula: '$$ Z = R + jX $$\\n$$ |Z| = \\sqrt{R^2 + X^2} $$', frequency: '상' },
+    { id: 106, category: 'foundation', levels: ['craftsman'], title: '각주파수 (ω)', definition: '1초당 회전 각도(라디안).', formula: '$$ \\omega = 2\\pi f \\text{ [rad/s]} $$', frequency: '중' },
+    { id: 107, category: 'foundation', levels: ['craftsman'], title: '전력량과 에너지', definition: '사용한 전력의 총합.', formula: '$$ W = P \\times t \\text{ [J]} $$\\n$$ 1\\text{kWh} = 3.6 \\times 10^6 \\text{ J} $$', frequency: '상' },
+    { id: 108, category: 'foundation', levels: ['craftsman'], title: '줄의 법칙 (Joule\'s Law)', definition: '전류가 흐를 때 발생하는 열량.', formula: '$$ H = 0.24 I^2 R t \\text{ [cal]} $$', frequency: '중' },
+    { id: 109, category: 'foundation', levels: ['craftsman'], title: '플레밍의 법칙', definition: '왼손(전동기/힘), 오른손(발전기/기전력).', formula: '$$ \\text{엄지(F,v) - 검지(B) - 중지(I,e)} $$', frequency: '상' },
+    { id: 110, category: 'foundation', levels: ['craftsman'], title: '실효값과 평균값', definition: '교류의 크기 기준. 정현파 기준식.', formula: '$$ V_{rms} = \\frac{V_m}{\\sqrt{2}} $$\\n$$ V_{avg} = \\frac{2V_m}{\\pi} $$', frequency: '상' },
+    { id: 111, category: 'foundation', levels: ['craftsman'], title: '파고율과 파형율', definition: '파형의 날카로움과 평활도.', formula: '$$ \\text{파고율} = \\frac{\\text{최대값}}{\\text{실효값}} $$\\n$$ \\text{파형율} = \\frac{\\text{실효값}}{\\text{평균값}} $$', frequency: '중' },
+    { id: 112, category: 'foundation', levels: ['craftsman'], title: '컨덕턴스와 어드미턴스', definition: '저항과 임피던스의 역수.', formula: '$$ G = \\frac{1}{R} \\text{ [S]} $$\\n$$ Y = \\frac{1}{Z} = G + jB $$', frequency: '중' },
+    { id: 113, category: 'foundation', levels: ['craftsman'], title: '호도법 (Radian)', definition: '각도를 π로 변환.', formula: '$$ 1 \\text{ rad} = \\frac{180}{\\pi}^\\circ $$', frequency: '하' },
+    { id: 114, category: 'foundation', levels: ['craftsman'], title: '키르히호프의 법칙', definition: 'KCL(전류)과 KVL(전압).', formula: '$$ \\sum I_{in} = \\sum I_{out} $$\\n$$ \\sum V_{rise} = \\sum V_{drop} $$', frequency: '상' },
+    { id: 115, category: 'foundation', levels: ['craftsman'], title: '정전유도 현상', definition: '대전체 접근 시 전하 분리.', formula: '$$ Q = CV $$', frequency: '중' },
+    { id: 116, category: 'foundation', levels: ['craftsman'], title: '벡터 내적(전력)', definition: '유효전력을 구하는 벡터 연산.', formula: '$$ \\vec{A} \\cdot \\vec{B} = |A||B| \\cos\\theta $$', frequency: '중' },
+    { id: 117, category: 'foundation', levels: ['craftsman'], title: '벡터 외적(전자력)', definition: '힘의 방향과 크기를 구하는 연산.', formula: '$$ |\\vec{A} \\times \\vec{B}| = |A||B| \\sin\\theta $$', frequency: '중' },
+    { id: 118, category: 'foundation', levels: ['craftsman'], title: '접두어 단위', definition: '크기 변환.', formula: '$$ \\text{M} = 10^6, \\text{k} = 10^3 $$\\n$$ \\text{m} = 10^{-3}, \\mu = 10^{-6} $$', frequency: '상' },
+    { id: 119, category: 'foundation', levels: ['craftsman'], title: '전하량 (Q)', definition: '전류와 시간의 곱.', formula: '$$ Q = I \\times t \\text{ [C]} $$', frequency: '상' },
+    { id: 120, category: 'foundation', levels: ['craftsman'], title: '전압 분배 법칙', definition: '직렬 회로에서 전압이 저항에 비례하여 분배.', formula: '$$ V_1 = V \\frac{R_1}{R_1 + R_2} $$', frequency: '상' },
 
     // ===== 1. 전기자기학 (20개) =====
-    { id: 201, category: 'electromagnetics', title: '쿨롱의 법칙 (정전기력)', definition: '두 점전하 사이의 힘.', formula: '$$ F = \\frac{1}{4\\pi\\varepsilon} \\frac{Q_1 Q_2}{r^2} \\text{ [N]} $$', frequency: '상' },
-    { id: 202, category: 'electromagnetics', title: '전계의 세기 (E)', definition: '단위 전하가 받는 힘.', formula: '$$ E = \\frac{F}{Q} = \\frac{V}{d} \\text{ [V/m]} $$', frequency: '상' },
-    { id: 203, category: 'electromagnetics', title: '정전용량 (C)', definition: '평행판 콘덴서의 전하 축적 능력.', formula: '$$ C = \\varepsilon \\frac{A}{d} \\text{ [F]} $$', frequency: '상' },
-    { id: 204, category: 'electromagnetics', title: '가우스의 정리', definition: '폐곡면을 통과하는 전기력선 수.', formula: '$$ N = \\frac{Q}{\\varepsilon_0} $$', frequency: '상' },
-    { id: 205, category: 'electromagnetics', title: '정전계 에너지 밀도', definition: '콘덴서에 축적되는 체적당 에너지.', formula: '$$ w = \\frac{1}{2} \\varepsilon E^2 \\text{ [J/m}^3\\text{]} $$\\n$$ W = \\frac{1}{2} CV^2 $$', frequency: '상' },
-    { id: 206, category: 'electromagnetics', title: '비오-사바르의 법칙', definition: '미소 전류에 의한 자계의 세기.', formula: '$$ dH = \\frac{I \\cdot dl \\cdot \\sin\\theta}{4\\pi r^2} $$', frequency: '상' },
-    { id: 207, category: 'electromagnetics', title: '암페어 주회적분 법칙', definition: '무한장 직선 도선 주변의 자계.', formula: '$$ \\oint H \\cdot dl = I $$\\n$$ H = \\frac{I}{2\\pi r} $$', frequency: '상' },
-    { id: 208, category: 'electromagnetics', title: '로렌츠의 힘', definition: '전계와 자계 속을 운동하는 전하가 받는 힘.', formula: '$$ F = q(\\vec{E} + \\vec{v} \\times \\vec{B}) $$', frequency: '중' },
-    { id: 209, category: 'electromagnetics', title: '패러데이 전자유도', definition: '자속 변화에 의한 유도기전력.', formula: '$$ e = -N \\frac{d\\Phi}{dt} \\text{ [V]} $$', frequency: '상' },
-    { id: 210, category: 'electromagnetics', title: '자체 인덕턴스 (L)', definition: '전류 변화에 저항하는 코일의 성질.', formula: '$$ L = \\frac{N \\Phi}{I} \\text{ [H]} $$', frequency: '상' },
-    { id: 211, category: 'electromagnetics', title: '전자파의 속도', definition: '진공 중 전자파 전파 속도.', formula: '$$ v = \\frac{1}{\\sqrt{\\varepsilon_0 \\mu_0}} = 3 \\times 10^8 \\text{ [m/s]} $$', frequency: '중' },
-    { id: 212, category: 'electromagnetics', title: '전기쌍극자의 전위와 전계', definition: '쌍극자에 의한 거리 r에서의 영향.', formula: '$$ V \\propto \\frac{1}{r^2} $$\\n$$ E \\propto \\frac{1}{r^3} $$', frequency: '상' },
-    { id: 213, category: 'electromagnetics', title: '자기저항 (Rm)', definition: '자속의 흐름을 방해하는 정도.', formula: '$$ R_m = \\frac{L}{\\mu A} \\text{ [AT/Wb]} $$', frequency: '상' },
-    { id: 214, category: 'electromagnetics', title: '경계조건', definition: '두 매질 경계면에서의 특성.', formula: '$$ E_{1t} = E_{2t} \\text{ (전계 접선 연속)} $$\\n$$ D_{1n} = D_{2n} \\text{ (전속 법선 연속)} $$', frequency: '상' },
-    { id: 215, category: 'electromagnetics', title: '상호 인덕턴스 (M)', definition: '결합된 두 코일의 유도 용량.', formula: '$$ M = k \\sqrt{L_1 L_2} $$', frequency: '상' },
-    { id: 216, category: 'electromagnetics', title: '환상 솔레노이드 자계', definition: '코일 내부의 자계 세기.', formula: '$$ H = \\frac{NI}{2\\pi r} = \\frac{NI}{l} $$', frequency: '중' },
-    { id: 217, category: 'electromagnetics', title: '표피효과 (Skin Effect)', definition: '주파수가 높을수록 표면으로 전류가 집중.', formula: '$$ \\delta = \\frac{1}{\\sqrt{\\pi f \\mu k}} $$', frequency: '상' },
-    { id: 218, category: 'electromagnetics', title: '포인팅 벡터 (P)', definition: '단위 면적당 전파되는 단위 시간당 에너지.', formula: '$$ \\vec{P} = \\vec{E} \\times \\vec{H} \\text{ [W/m}^2\\text{]} $$', frequency: '중' },
-    { id: 219, category: 'electromagnetics', title: '맥스웰 방정식 (미분형)', definition: '전자계 핵심 기본식.', formula: '$$ \\nabla \\times \\vec{E} = -\\frac{\\partial \\vec{B}}{\\partial t} $$', frequency: '중' },
-    { id: 220, category: 'electromagnetics', title: '자계 에너지 밀도', definition: '인덕터에 축적되는 체적당 에너지.', formula: '$$ w = \\frac{1}{2} \\mu H^2 $$\\n$$ W = \\frac{1}{2} L I^2 $$', frequency: '상' },
+    { id: 201, category: 'electromagnetics', levels: ['industrial_engineer', 'engineer'], title: '쿨롱의 법칙 (정전기력)', definition: '두 점전하 사이의 힘.', formula: '$$ F = \\frac{1}{4\\pi\\varepsilon} \\frac{Q_1 Q_2}{r^2} \\text{ [N]} $$', frequency: '상' },
+    { id: 202, category: 'electromagnetics', levels: ['industrial_engineer', 'engineer'], title: '전계의 세기 (E)', definition: '단위 전하가 받는 힘.', formula: '$$ E = \\frac{F}{Q} = \\frac{V}{d} \\text{ [V/m]} $$', frequency: '상' },
+    { id: 203, category: 'electromagnetics', levels: ['industrial_engineer', 'engineer'], title: '정전용량 (C)', definition: '평행판 콘덴서의 전하 축적 능력.', formula: '$$ C = \\varepsilon \\frac{A}{d} \\text{ [F]} $$', frequency: '상' },
+    { id: 204, category: 'electromagnetics', levels: ['industrial_engineer', 'engineer'], title: '가우스의 정리', definition: '폐곡면을 통과하는 전기력선 수.', formula: '$$ N = \\frac{Q}{\\varepsilon_0} $$', frequency: '상' },
+    { id: 205, category: 'electromagnetics', levels: ['industrial_engineer', 'engineer'], title: '정전계 에너지 밀도', definition: '콘덴서에 축적되는 체적당 에너지.', formula: '$$ w = \\frac{1}{2} \\varepsilon E^2 \\text{ [J/m}^3\\text{]} $$\\n$$ W = \\frac{1}{2} CV^2 $$', frequency: '상' },
+    { id: 206, category: 'electromagnetics', levels: ['industrial_engineer', 'engineer'], title: '비오-사바르의 법칙', definition: '미소 전류에 의한 자계의 세기.', formula: '$$ dH = \\frac{I \\cdot dl \\cdot \\sin\\theta}{4\\pi r^2} $$', frequency: '상' },
+    { id: 207, category: 'electromagnetics', levels: ['industrial_engineer', 'engineer'], title: '암페어 주회적분 법칙', definition: '무한장 직선 도선 주변의 자계.', formula: '$$ \\oint H \\cdot dl = I $$\\n$$ H = \\frac{I}{2\\pi r} $$', frequency: '상' },
+    { id: 208, category: 'electromagnetics', levels: ['industrial_engineer', 'engineer'], title: '로렌츠의 힘', definition: '전계와 자계 속을 운동하는 전하가 받는 힘.', formula: '$$ F = q(\\vec{E} + \\vec{v} \\times \\vec{B}) $$', frequency: '중' },
+    { id: 209, category: 'electromagnetics', levels: ['industrial_engineer', 'engineer'], title: '패러데이 전자유도', definition: '자속 변화에 의한 유도기전력.', formula: '$$ e = -N \\frac{d\\Phi}{dt} \\text{ [V]} $$', frequency: '상' },
+    { id: 210, category: 'electromagnetics', levels: ['industrial_engineer', 'engineer'], title: '자체 인덕턴스 (L)', definition: '전류 변화에 저항하는 코일의 성질.', formula: '$$ L = \\frac{N \\Phi}{I} \\text{ [H]} $$', frequency: '상' },
+    { id: 211, category: 'electromagnetics', levels: ['industrial_engineer', 'engineer'], title: '전자파의 속도', definition: '진공 중 전자파 전파 속도.', formula: '$$ v = \\frac{1}{\\sqrt{\\varepsilon_0 \\mu_0}} = 3 \\times 10^8 \\text{ [m/s]} $$', frequency: '중' },
+    { id: 212, category: 'electromagnetics', levels: ['industrial_engineer', 'engineer'], title: '전기쌍극자의 전위와 전계', definition: '쌍극자에 의한 거리 r에서의 영향.', formula: '$$ V \\propto \\frac{1}{r^2} $$\\n$$ E \\propto \\frac{1}{r^3} $$', frequency: '상' },
+    { id: 213, category: 'electromagnetics', levels: ['industrial_engineer', 'engineer'], title: '자기저항 (Rm)', definition: '자속의 흐름을 방해하는 정도.', formula: '$$ R_m = \\frac{L}{\\mu A} \\text{ [AT/Wb]} $$', frequency: '상' },
+    { id: 214, category: 'electromagnetics', levels: ['industrial_engineer', 'engineer'], title: '경계조건', definition: '두 매질 경계면에서의 특성.', formula: '$$ E_{1t} = E_{2t} \\text (전계 접선 연속) $$\\n$$ D_{1n} = D_{2n} \\text (전속 법선 연속) $$', frequency: '상' },
+    { id: 215, category: 'electromagnetics', levels: ['industrial_engineer', 'engineer'], title: '상호 인덕턴스 (M)', definition: '결합된 두 코일의 유도 용량.', formula: '$$ M = k \\sqrt{L_1 L_2} $$', frequency: '상' },
+    { id: 216, category: 'electromagnetics', levels: ['industrial_engineer', 'engineer'], title: '환상 솔레노이드 자계', definition: '코일 내부의 자계 세기.', formula: '$$ H = \\frac{NI}{2\\pi r} = \\frac{NI}{l} $$', frequency: '중' },
+    { id: 217, category: 'electromagnetics', levels: ['industrial_engineer', 'engineer'], title: '표피효과 (Skin Effect)', definition: '주파수가 높을수록 표면으로 전류가 집중.', formula: '$$ \\delta = \\frac{1}{\\sqrt{\\pi f \\mu k}} $$', frequency: '상' },
+    { id: 218, category: 'electromagnetics', levels: ['industrial_engineer', 'engineer'], title: '포인팅 벡터 (P)', definition: '단위 면적당 전파되는 단위 시간당 에너지.', formula: '$$ \\vec{P} = \\vec{E} \\times \\vec{H} \\text{ [W/m}^2\\text{]} $$', frequency: '중' },
+    { id: 219, category: 'electromagnetics', levels: ['industrial_engineer', 'engineer'], title: '맥스웰 방정식 (미분형)', definition: '전자계 핵심 기본식.', formula: '$$ \\nabla \\times \\vec{E} = -\\frac{\\partial \\vec{B}}{\\partial t} $$', frequency: '중' },
+    { id: 220, category: 'electromagnetics', levels: ['industrial_engineer', 'engineer'], title: '자계 에너지 밀도', definition: '인덕터에 축적되는 체적당 에너지.', formula: '$$ w = \\frac{1}{2} \\mu H^2 $$\\n$$ W = \\frac{1}{2} L I^2 $$', frequency: '상' },
 
     // ===== 2. 전력공학 (20개) =====
-    { id: 301, category: 'power', title: '전압강하 (e)', definition: '송수전단 전압 차이.', formula: '$$ e = \\sqrt{3} I (R \\cos\\theta + X \\sin\\theta) $$', frequency: '상' },
-    { id: 302, category: 'power', title: '이도 (Sag)', definition: '전선의 처짐 정도.', formula: '$$ D = \\frac{W S^2}{8 T} \\text{ [m]} $$', frequency: '상' },
-    { id: 303, category: 'power', title: '%임피던스 (%Z)', definition: '정격전류 흐를 때의 전압강하 비율.', formula: '$$ \\%Z = \\frac{P Z}{10 V^2} \\times 100 $$', frequency: '상' },
-    { id: 304, category: 'power', title: '단락전류 (Is)', definition: '고장 시 흐르는 최대 전류.', formula: '$$ I_s = \\frac{100}{\\%Z} I_n $$', frequency: '상' },
-    { id: 305, category: 'power', title: '수력발전 출력', definition: '낙차와 유량에 의한 출력.', formula: '$$ P = 9.8 Q H \\eta \\text{ [kW]} $$', frequency: '중' },
-    { id: 306, category: 'power', title: '역률 개선 콘덴서 용량', definition: '무효전력 상쇄용량.', formula: '$$ Q_c = P (\\tan\\theta_1 - \\tan\\theta_2) $$', frequency: '상' },
-    { id: 307, category: 'power', title: '코로나 임계전압', definition: '공기 절연이 파괴되기 시작하는 전압.', formula: '$$ E_0 = 24.3 m_0 m_1 \\delta d \\log_{10}\\frac{D}{r} $$', frequency: '중' },
-    { id: 308, category: 'power', title: '송전용량 (Still의 식)', definition: '경제적 송전전압.', formula: '$$ V = 5.5 \\sqrt{0.6L + \\frac{P}{100}} $$', frequency: '중' },
-    { id: 309, category: 'power', title: '수용률', definition: '설비의 동시 사용 정도.', formula: '$$ \\text{수용률} = \\frac{\\text{최대수용전력}}{\\text{총설비용량}} \\times 100 $$', frequency: '상' },
-    { id: 310, category: 'power', title: '부등률', definition: '최대전력 발생 시간의 분산 정도.', formula: '$$ \\text{부등률} = \\frac{\\sum\\text{개별최대전력}}{\\text{합성최대전력}} \\ge 1 $$', frequency: '상' },
-    { id: 311, category: 'power', title: '부하율', definition: '설비의 가동 효율성.', formula: '$$ \\text{부하율} = \\frac{\\text{평균전력}}{\\text{최대전력}} \\times 100 $$', frequency: '상' },
-    { id: 312, category: 'power', title: '단락용량 (Ps)', definition: '차단기 차단능력 기준.', formula: '$$ P_s = \\sqrt{3} V_n I_s = \\frac{100}{\\%Z} P_n $$', frequency: '상' },
-    { id: 313, category: 'power', title: '페란티 현상', definition: '정전용량(C)에 의한 수전단 전압 상승.', formula: '$$ I_c = \\omega C V $$ (대책: 분로리액터)', frequency: '상' },
-    { id: 314, category: 'power', title: '연가 (Transposition)', definition: '선로정수 평형을 위해 전선 위치 3등분 교체.', formula: '$$ L_1 = L_2 = L_3 $$\\n$$ C_1 = C_2 = C_3 $$', frequency: '상' },
-    { id: 315, category: 'power', title: '중성점 직접접지', definition: '1선 지락 시 건전상 전위상승 최소화.', formula: '$$ \\text{접지저항 } R \\approx 0 $$', frequency: '상' },
-    { id: 316, category: 'power', title: '소호리액터 접지', definition: '지락전류를 0으로 만들어 아크 자연 소멸.', formula: '$$ \\omega L = \\frac{1}{3 \\omega C} $$', frequency: '상' },
-    { id: 317, category: 'power', title: '충전 용량 (Qc)', definition: '선로의 대지정전용량에 의한 무효전력.', formula: '$$ Q_c = 3 \\omega C E^2 = \\omega C V^2 $$', frequency: '중' },
-    { id: 318, category: 'power', title: '안정도 향상 대책', definition: '계통의 동기탈조 방지.', formula: '$$ \\text{직렬 리액턴스(X)를 작게 할 것} $$', frequency: '상' },
-    { id: 319, category: 'power', title: '가공지선 보호각', definition: '직격뢰 보호 범위.', formula: '$$ \\text{차폐각이 작을수록 보호율 상승} $$', frequency: '상' },
-    { id: 320, category: 'power', title: '켈빈의 법칙', definition: '가장 경제적인 전선 굵기.', formula: '$$ \\text{연간 이자/상각비} = \\text{연간 전력손실비} $$', frequency: '중' },
+    { id: 301, category: 'power', levels: ['industrial_engineer', 'engineer'], title: '전압강하 (e)', definition: '송수전단 전압 차이.', formula: '$$ e = \\sqrt{3} I (R \\cos\\theta + X \\sin\\theta) $$', frequency: '상' },
+    { id: 302, category: 'power', levels: ['industrial_engineer', 'engineer'], title: '이도 (Sag)', definition: '전선의 처짐 정도.', formula: '$$ D = \\frac{W S^2}{8 T} \\text{ [m]} $$', frequency: '상' },
+    { id: 303, category: 'power', levels: ['industrial_engineer', 'engineer'], title: '%임피던스 (%Z)', definition: '정격전류 흐를 때의 전압강하 비율.', formula: '$$ \\%Z = \\frac{P Z}{10 V^2} \\times 100 $$', frequency: '상' },
+    { id: 304, category: 'power', levels: ['industrial_engineer', 'engineer'], title: '단락전류 (Is)', definition: '고장 시 흐르는 최대 전류.', formula: '$$ I_s = \\frac{100}{\\%Z} I_n $$', frequency: '상' },
+    { id: 305, category: 'power', levels: ['industrial_engineer', 'engineer'], title: '수력발전 출력', definition: '낙차와 유량에 의한 출력.', formula: '$$ P = 9.8 Q H \\eta \\text{ [kW]} $$', frequency: '중' },
+    { id: 306, category: 'power', levels: ['industrial_engineer', 'engineer'], title: '역률 개선 콘덴서 용량', definition: '무효전력 상쇄용량.', formula: '$$ Q_c = P (\\tan\\theta_1 - \\tan\\theta_2) $$', frequency: '상' },
+    { id: 307, category: 'power', levels: ['industrial_engineer', 'engineer'], title: '코로나 임계전압', definition: '공기 절연이 파괴되기 시작하는 전압.', formula: '$$ E_0 = 24.3 m_0 m_1 \\delta d \\log_{10}\\frac{D}{r} $$', frequency: '중' },
+    { id: 308, category: 'power', levels: ['industrial_engineer', 'engineer'], title: '송전용량 (Still의 식)', definition: '경제적 송전전압.', formula: '$$ V = 5.5 \\sqrt{0.6L + \\frac{P}{100}} $$', frequency: '중' },
+    { id: 309, category: 'power', levels: ['industrial_engineer', 'engineer'], title: '수용률', definition: '설비의 동시 사용 정도.', formula: '$$ \\text{수용률} = \\frac{\\text{최대수용전력}}{\\text{총설비용량}} \\times 100 $$', frequency: '상' },
+    { id: 310, category: 'power', levels: ['industrial_engineer', 'engineer'], title: '부등률', definition: '최대전력 발생 시간의 분산 정도.', formula: '$$ \\text{부등률} = \\frac{\\sum\\text{개별최대전력}}{\\text{합성최대전력}} \\ge 1 $$', frequency: '상' },
+    { id: 311, category: 'power', levels: ['industrial_engineer', 'engineer'], title: '부하율', definition: '설비의 가동 효율성.', formula: '$$ \\text{부하율} = \\frac{\\text{평균전력}}{\\text{최대전력}} \\times 100 $$', frequency: '상' },
+    { id: 312, category: 'power', levels: ['industrial_engineer', 'engineer'], title: '단락용량 (Ps)', definition: '차단기 차단능력 기준.', formula: '$$ P_s = \\sqrt{3} V_n I_s = \\frac{100}{\\%Z} P_n $$', frequency: '상' },
+    { id: 313, category: 'power', levels: ['industrial_engineer', 'engineer'], title: '페란티 현상', definition: '정전용량(C)에 의한 수전단 전압 상승.', formula: '$$ I_c = \\omega C V $$ (대책: 분로리액터)', frequency: '상' },
+    { id: 314, category: 'power', levels: ['industrial_engineer', 'engineer'], title: '연가 (Transposition)', definition: '선로정수 평형을 위해 전선 위치 3등분 교체.', formula: '$$ L_1 = L_2 = L_3 $$\\n$$ C_1 = C_2 = C_3 $$', frequency: '상' },
+    { id: 315, category: 'power', levels: ['industrial_engineer', 'engineer'], title: '중성점 직접접지', definition: '1선 지락 시 건전상 전위상승 최소화.', formula: '$$ \\text{접지저항 } R \\approx 0 $$', frequency: '상' },
+    { id: 316, category: 'power', levels: ['industrial_engineer', 'engineer'], title: '소호리액터 접지', definition: '지락전류를 0으로 만들어 아크 자연 소멸.', formula: '$$ \\omega L = \\frac{1}{3 \\omega C} $$', frequency: '상' },
+    { id: 317, category: 'power', levels: ['industrial_engineer', 'engineer'], title: '충전 용량 (Qc)', definition: '선로의 대지정전용량에 의한 무효전력.', formula: '$$ Q_c = 3 \\omega C E^2 = \\omega C V^2 $$', frequency: '중' },
+    { id: 318, category: 'power', levels: ['industrial_engineer', 'engineer'], title: '안정도 향상 대책', definition: '계통의 동기탈조 방지.', formula: '$$ \\text{직렬 리액턴스(X)를 작게 할 것} $$', frequency: '상' },
+    { id: 319, category: 'power', levels: ['industrial_engineer', 'engineer'], title: '가공지선 보호각', definition: '직격뢰 보호 범위.', formula: '$$ \\text{차폐각이 작을수록 보호율 상승} $$', frequency: '상' },
+    { id: 320, category: 'power', levels: ['industrial_engineer', 'engineer'], title: '켈빈의 법칙', definition: '가장 경제적인 전선 굵기.', formula: '$$ \\text{연간 이자/상각비} = \\text{연간 전력손실비} $$', frequency: '중' },
 
     // ===== 3. 전기기기 (20개) =====
-    { id: 401, category: 'machine', title: '직류기 유기기전력', definition: '전기자 회전으로 발생하는 전압.', formula: '$$ E = \\frac{P Z}{60 a} \\Phi N $$', frequency: '상' },
-    { id: 402, category: 'machine', title: '직류기 토크', definition: '전동기의 회전력.', formula: '$$ T = 0.975 \\frac{P}{N} \\text{ [kg}\\cdot\\text{m]} $$', frequency: '상' },
-    { id: 403, category: 'machine', title: '변압기 권수비 (a)', definition: '전압, 전류, 저항 변환 비율.', formula: '$$ a = \\frac{N_1}{N_2} = \\frac{V_1}{V_2} = \\frac{I_2}{I_1} = \\sqrt{\\frac{Z_1}{Z_2}} $$', frequency: '상' },
-    { id: 404, category: 'machine', title: '유도기 동기속도 (Ns)', definition: '회전자기장의 속도.', formula: '$$ N_s = \\frac{120 f}{P} \\text{ [rpm]} $$', frequency: '상' },
-    { id: 405, category: 'machine', title: '유도기 슬립 (s)', definition: '실제 회전속도(N)와의 차이 비율.', formula: '$$ s = \\frac{N_s - N}{N_s} $$', frequency: '상' },
-    { id: 406, category: 'machine', title: '동기발전기 단락비 (K)', definition: '단락전류와 정격전류의 비.', formula: '$$ K = \\frac{100}{\\%Z_s} = \\frac{I_s}{I_n} $$', frequency: '중' },
-    { id: 407, category: 'machine', title: '변압기 최대 효율 조건', definition: '손실 최소화 지점.', formula: '$$ P_i \\text{ (철손)} = P_c \\text{ (동손)} $$', frequency: '상' },
-    { id: 408, category: 'machine', title: 'V결선 이용률/출력비', definition: '단상 2대로 3상 공급.', formula: '$$ \\text{이용률} = \\frac{\\sqrt{3}}{2} (86.6\\%) $$\\n$$ \\text{출력비} = \\frac{\\sqrt{3}}{3} (57.7\\%) $$', frequency: '상' },
-    { id: 409, category: 'machine', title: '동기전동기 V곡선', definition: '계자전류 변화에 따른 전기자 전류 변화.', formula: '$$ \\text{과여자: 진상(C)} $$\\n$$ \\text{부족여자: 지상(L)} $$', frequency: '상' },
-    { id: 410, category: 'machine', title: '비례 추이 (권선형)', definition: '2차 저항 증가 시 최대토크 슬립 이동.', formula: '$$ \\frac{r_2}{s} = \\frac{r_2 + R}{s\'} $$ (최대토크 불변)', frequency: '중' },
-    { id: 411, category: 'machine', title: '동기발전기 유도기전력', definition: '한 상의 발전 전압.', formula: '$$ E = 4.44 K_w f N \\Phi $$ (Kw: 권선계수)', frequency: '상' },
-    { id: 412, category: 'machine', title: '전기자 반작용 (직류기)', definition: '주자속 감소 및 편편 현상.', formula: '$$ \\text{대책: 보상권선 설치 (가장 효과적)} $$', frequency: '상' },
-    { id: 413, category: 'machine', title: '유도기 2차 입력과 동손', definition: '회전자 전력 관계.', formula: '$$ P_2 : P_{c2} : P_{out} = 1 : s : (1-s) $$', frequency: '상' },
-    { id: 414, category: 'machine', title: '단상 유도전동기 기동토크', definition: '스스로 돌지 못해 보조기동 필요.', formula: '$$ \\text{반발} > \\text{콘덴서} > \\text{분상} > \\text{셰이딩} $$', frequency: '상' },
-    { id: 415, category: 'machine', title: '정류 회로 (맥동률)', definition: '직류 변환 시 리플 정도.', formula: '$$ \\text{단상 반파 121\\%, 단상 전파 48\\%} $$', frequency: '중' },
-    { id: 416, category: 'machine', title: '변압기 전압변동률', definition: '무부하와 정격 부하 시 전압 차이.', formula: '$$ \\epsilon = p \\cos\\theta + q \\sin\\theta $$', frequency: '상' },
-    { id: 417, category: 'machine', title: '병렬운전 조건 (동기기)', definition: '순환전류 방지 조건.', formula: '$$ \\text{기전력의 크기, 위상, 주파수, 파형 일치} $$', frequency: '상' },
-    { id: 418, category: 'machine', title: '사이리스터 (SCR)', definition: '위상 제어용 반도체.', formula: '$$ E_d = \\frac{\\sqrt{2} E}{\\pi} \\frac{1+\\cos\\alpha}{2} $$', frequency: '중' },
-    { id: 419, category: 'machine', title: '난조 (Hunting)', definition: '동기속도 진동 현상.', formula: '$$ \\text{대책: 제동권선 (Amortisseur Winding) 설치} $$', frequency: '상' },
-    { id: 420, category: 'machine', title: '속도 제어 (직류기)', definition: '회전수 조절법.', formula: '$$ N = \\frac{V - I_a R_a}{K \\Phi} $$ (전압제어가 가장 광범위)', frequency: '중' },
+    { id: 401, category: 'machine', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '직류기 유기기전력', definition: '전기자 회전으로 발생하는 전압.', formula: '$$ E = \\frac{P Z}{60 a} \\Phi N $$', frequency: '상' },
+    { id: 402, category: 'machine', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '직류기 토크', definition: '전동기의 회전력.', formula: '$$ T = 0.975 \\frac{P}{N} \\text{ [kg}\\cdot\\text{m]} $$', frequency: '상' },
+    { id: 403, category: 'machine', levels: ['industrial_engineer', 'engineer'], title: '변압기 권수비 (a)', definition: '전압, 전류, 저항 변환 비율.', formula: '$$ a = \\frac{N_1}{N_2} = \\frac{V_1}{V_2} = \\frac{I_2}{I_1} = \\sqrt{\\frac{Z_1}{Z_2}} $$', frequency: '상' },
+    { id: 404, category: 'machine', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '유도기 동기속도 (Ns)', definition: '회전자기장의 속도.', formula: '$$ N_s = \\frac{120 f}{P} \\text{ [rpm]} $$', frequency: '상' },
+    { id: 405, category: 'machine', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '유도기 슬립 (s)', definition: '실제 회전속도(N)와의 차이 비율.', formula: '$$ s = \\frac{N_s - N}{N_s} $$', frequency: '상' },
+    { id: 406, category: 'machine', levels: ['industrial_engineer', 'engineer'], title: '동기발전기 단락비 (K)', definition: '단락전류와 정격전류의 비.', formula: '$$ K = \\frac{100}{\\%Z_s} = \\frac{I_s}{I_n} $$', frequency: '중' },
+    { id: 407, category: 'machine', levels: ['industrial_engineer', 'engineer'], title: '변압기 최대 효율 조건', definition: '손실 최소화 지점.', formula: '$$ P_i \\text{ (철손)} = P_c \\text{ (동손)} $$', frequency: '상' },
+    { id: 408, category: 'machine', levels: ['industrial_engineer', 'engineer'], title: 'V결선 이용률/출력비', definition: '단상 2대로 3상 공급.', formula: '$$ \\text{이용률} = \\frac{\\sqrt{3}}{2} (86.6\\%) $$\\n$$ \\text{출력비} = \\frac{\\sqrt{3}}{3} (57.7\\%) $$', frequency: '상' },
+    { id: 409, category: 'machine', levels: ['industrial_engineer', 'engineer'], title: '동기전동기 V곡선', definition: '계자전류 변화에 따른 전기자 전류 변화.', formula: '$$ \\text{과여자: 진상(C)} $$\\n$$ \\text{부족여자: 지상(L)} $$', frequency: '상' },
+    { id: 410, category: 'machine', levels: ['industrial_engineer', 'engineer'], title: '비례 추이 (권선형)', definition: '2차 저항 증가 시 최대토크 슬립 이동.', formula: '$$ \\frac{r_2}{s} = \\frac{r_2 + R}{s\'} $$ (최대토크 불변)', frequency: '중' },
+    { id: 411, category: 'machine', levels: ['industrial_engineer', 'engineer'], title: '동기발전기 유도기전력', definition: '한 상의 발전 전압.', formula: '$$ E = 4.44 K_w f N \\Phi $$ (Kw: 권선계수)', frequency: '상' },
+    { id: 412, category: 'machine', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '전기자 반작용 (직류기)', definition: '주자속 감소 및 편편 현상.', formula: '$$ \\text{대책: 보상권선 설치 (가장 효과적)} $$', frequency: '상' },
+    { id: 413, category: 'machine', levels: ['industrial_engineer', 'engineer'], title: '유도기 2차 입력과 동손', definition: '회전자 전력 관계.', formula: '$$ P_2 : P_{c2} : P_{out} = 1 : s : (1-s) $$', frequency: '상' },
+    { id: 414, category: 'machine', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '단상 유도전동기 기동토크', definition: '스스로 돌지 못해 보조기동 필요.', formula: '$$ \\text{반발} > \\text{콘덴서} > \\text{분상} > \\text{셰이딩} $$', frequency: '상' },
+    { id: 415, category: 'machine', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '정류 회로 (맥동률)', definition: '직류 변환 시 리플 정도.', formula: '$$ \\text{단상 반파 121\\%, 단상 전파 48\\%} $$', frequency: '중' },
+    { id: 416, category: 'machine', levels: ['industrial_engineer', 'engineer'], title: '변압기 전압변동률', definition: '무부하와 정격 부하 시 전압 차이.', formula: '$$ \\epsilon = p \\cos\\theta + q \\sin\\theta $$', frequency: '상' },
+    { id: 417, category: 'machine', levels: ['industrial_engineer', 'engineer'], title: '병렬운전 조건 (동기기)', definition: '순환전류 방지 조건.', formula: '$$ \\text{기전력의 크기, 위상, 주파수, 파형 일치} $$', frequency: '상' },
+    { id: 418, category: 'machine', levels: ['industrial_engineer', 'engineer'], title: '사이리스터 (SCR)', definition: '위상 제어용 반도체.', formula: '$$ E_d = \\frac{\\sqrt{2} E}{\\pi} \\frac{1+\\cos\\alpha}{2} $$', frequency: '중' },
+    { id: 419, category: 'machine', levels: ['industrial_engineer', 'engineer'], title: '난조 (Hunting)', definition: '동기속도 진동 현상.', formula: '$$ \\text{대책: 제동권선 (Amortisseur Winding) 설치} $$', frequency: '상' },
+    { id: 420, category: 'machine', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '속도 제어 (직류기)', definition: '회전수 조절법.', formula: '$$ N = \\frac{V - I_a R_a}{K \\Phi} $$ (전압제어가 가장 광범위)', frequency: '중' },
 
     // ===== 4. 회로이론 (20개) =====
-    { id: 501, category: 'circuit', title: '테브난의 정리', definition: '복잡한 회로를 전압원 1개와 저항 1개로 등가화.', formula: '$$ V_{th} = \\text{개방 전압} $$\\n$$ R_{th} = \\text{합성 저항} $$', frequency: '상' },
-    { id: 502, category: 'circuit', title: '중첩의 원리', definition: '전원이 여러 개일 때 개별 응답의 합.', formula: '$$ \\text{전압원: 단락(Short)} $$\\n$$ \\text{전류원: 개방(Open)} $$', frequency: '상' },
-    { id: 503, category: 'circuit', title: '직렬 공진 주파수', definition: '허수부가 0이 되어 임피던스가 최소화.', formula: '$$ f_0 = \\frac{1}{2\\pi\\sqrt{LC}} $$', frequency: '상' },
-    { id: 504, category: 'circuit', title: '과도현상 시정수 (τ)', definition: '응답의 지연 정도 (최종값의 63.2%).', formula: '$$ \\tau_{RC} = RC $$\\n$$ \\tau_{RL} = \\frac{L}{R} $$', frequency: '상' },
-    { id: 505, category: 'circuit', title: '최대 전력 전달 조건', definition: '내부 임피던스와 부하 임피던스가 공액일 때.', formula: '$$ Z_L = Z_S^* \\quad (R_L = R_S, X_L = -X_S) $$', frequency: '상' },
-    { id: 506, category: 'circuit', title: '비정현파 실효값', definition: '고조파 포함 파형의 크기.', formula: '$$ V_{rms} = \\sqrt{V_0^2 + V_1^2 + V_2^2 + \\cdots} $$', frequency: '상' },
-    { id: 507, category: 'circuit', title: '2전력계법', definition: '단상 전력계 2대로 3상 전력 측정.', formula: '$$ P = W_1 + W_2 $$\\n$$ P_r = \\sqrt{3}(W_1 - W_2) $$', frequency: '상' },
-    { id: 508, category: 'circuit', title: 'Y-Δ 등가 변환', definition: '결선 방식 변환 시 저항값 변화.', formula: '$$ R_Y = \\frac{R_\\Delta}{3} \\quad \\text{(저항 동일 시)} $$', frequency: '상' },
-    { id: 509, category: 'circuit', title: '분포정수 특성임피던스', definition: '장거리 선로 고유 저항.', formula: '$$ Z_0 = \\sqrt{\\frac{Z}{Y}} = \\sqrt{\\frac{R + j\\omega L}{G + j\\omega C}} $$', frequency: '중' },
-    { id: 510, category: 'circuit', title: '전파정수 (γ)', definition: '선로 파동의 감쇠와 위상 변화.', formula: '$$ \\gamma = \\alpha + j\\beta = \\sqrt{ZY} $$', frequency: '중' },
-    { id: 511, category: 'circuit', title: '4단자 정수 (ABCD)', definition: '입출력 행렬.', formula: '$$ AD - BC = 1 $$ (대칭 시 A=D)', frequency: '중' },
-    { id: 512, category: 'circuit', title: '밀만의 정리', definition: '다수의 병렬 전압원 합성 전압.', formula: '$$ V_{ab} = \\frac{\\sum (V/R)}{\\sum (1/R)} = \\frac{\\sum VY}{\\sum Y} $$', frequency: '중' },
-    { id: 513, category: 'circuit', title: '노턴의 정리', definition: '전류원 1개와 병렬 저항 1개로 등가화.', formula: '$$ I_N = \\text{단락 전류}, R_N = R_{th} $$', frequency: '중' },
-    { id: 514, category: 'circuit', title: '무손실 선로 조건', definition: '감쇠가 없는 이상적 선로.', formula: '$$ R = 0, \\quad G = 0 $$\\n$$ Z_0 = \\sqrt{\\frac{L}{C}} $$', frequency: '상' },
-    { id: 515, category: 'circuit', title: '대칭 좌표법', definition: '불평형 회로 해석용 3성분.', formula: '$$ \\text{영상분}(I_0), \\text{정상분}(I_1), \\text{역상분}(I_2) $$', frequency: '상' },
-    { id: 516, category: 'circuit', title: '구동점 임피던스 극/영점', definition: 'Z(s)의 특성.', formula: '$$ \\text{극점(Pole): } Z(s) = \\infty $$\\n$$ \\text{영점(Zero): } Z(s) = 0 $$', frequency: '하' },
-    { id: 517, category: 'circuit', title: 'Z, Y 파라미터', definition: '2단자망 해석.', formula: '$$ Z_{11} = \\left. \\frac{V_1}{I_1} \\right|_{I_2=0} \\text{ (개방)} $$', frequency: '중' },
-    { id: 518, category: 'circuit', title: '공진 시 Q (선택도)', definition: '공진의 예리함 정도.', formula: '$$ Q = \\frac{1}{R} \\sqrt{\\frac{L}{C}} = \\frac{f_0}{BW} $$', frequency: '중' },
-    { id: 519, category: 'circuit', title: '라플라스 회로 변환', definition: 's영역의 소자 임피던스.', formula: '$$ R \\to R, \\quad L \\to sL, \\quad C \\to \\frac{1}{sC} $$', frequency: '상' },
-    { id: 520, category: 'circuit', title: '비정현파의 전력', definition: '주파수가 같은 성분끼리만 전력 발생.', formula: '$$ P = V_0 I_0 + \\sum V_n I_n \\cos\\theta_n $$', frequency: '상' },
+    { id: 501, category: 'circuit', levels: ['industrial_engineer', 'engineer'], title: '테브난의 정리', definition: '복잡한 회로를 전압원 1개와 저항 1개로 등가화.', formula: '$$ V_{th} = \\text{개방 전압} $$\\n$$ R_{th} = \\text{합성 저항} $$', frequency: '상' },
+    { id: 502, category: 'circuit', levels: ['industrial_engineer', 'engineer'], title: '중첩의 원리', definition: '전원이 여러 개일 때 개별 응답의 합.', formula: '$$ \\text{전압원: 단락(Short)} $$\\n$$ \\text{전류원: 개방(Open)} $$', frequency: '상' },
+    { id: 503, category: 'circuit', levels: ['industrial_engineer', 'engineer'], title: '직렬 공진 주파수', definition: '허수부가 0이 되어 임피던스가 최소화.', formula: '$$ f_0 = \\frac{1}{2\\pi\\sqrt{LC}} $$', frequency: '상' },
+    { id: 504, category: 'circuit', levels: ['industrial_engineer', 'engineer'], title: '과도현상 시정수 (τ)', definition: '응답의 지연 정도 (최종값의 63.2%).', formula: '$$ \\tau_{RC} = RC $$\\n$$ \\tau_{RL} = \\frac{L}{R} $$', frequency: '상' },
+    { id: 505, category: 'circuit', levels: ['industrial_engineer', 'engineer'], title: '최대 전력 전달 조건', definition: '내부 임피던스와 부하 임피던스가 공액일 때.', formula: '$$ Z_L = Z_S^* \\quad (R_L = R_S, X_L = -X_S) $$', frequency: '상' },
+    { id: 506, category: 'circuit', levels: ['industrial_engineer', 'engineer'], title: '비정현파 실효값', definition: '고조파 포함 파형의 크기.', formula: '$$ V_{rms} = \\sqrt{V_0^2 + V_1^2 + V_2^2 + \\cdots} $$', frequency: '상' },
+    { id: 507, category: 'circuit', levels: ['industrial_engineer', 'engineer'], title: '2전력계법', definition: '단상 전력계 2대로 3상 전력 측정.', formula: '$$ P = W_1 + W_2 $$\\n$$ P_r = \\sqrt{3}(W_1 - W_2) $$', frequency: '상' },
+    { id: 508, category: 'circuit', levels: ['industrial_engineer', 'engineer'], title: 'Y-Δ 등가 변환', definition: '결선 방식 변환 시 저항값 변화.', formula: '$$ R_Y = \\frac{R_\\Delta}{3} \\quad \\text(저항 동일 시) $$', frequency: '상' },
+    { id: 509, category: 'circuit', levels: ['industrial_engineer', 'engineer'], title: '분포정수 특성임피던스', definition: '장거리 선로 고유 저항.', formula: '$$ Z_0 = \\sqrt{\\frac{Z}{Y}} = \\sqrt{\\frac{R + j\\omega L}{G + j\\omega C}} $$', frequency: '중' },
+    { id: 510, category: 'circuit', levels: ['industrial_engineer', 'engineer'], title: '전파정수 (γ)', definition: '선로 파동의 감쇠와 위상 변화.', formula: '$$ \\gamma = \\alpha + j\\beta = \\sqrt{ZY} $$', frequency: '중' },
+    { id: 511, category: 'circuit', levels: ['industrial_engineer', 'engineer'], title: '4단자 정수 (ABCD)', definition: '입출력 행렬.', formula: '$$ AD - BC = 1 $$ (대칭 시 A=D)', frequency: '중' },
+    { id: 512, category: 'circuit', levels: ['industrial_engineer', 'engineer'], title: '밀만의 정리', definition: '다수의 병렬 전압원 합성 전압.', formula: '$$ V_{ab} = \\frac{\\sum (V/R)}{\\sum (1/R)} = \\frac{\\sum VY}{\\sum Y} $$', frequency: '중' },
+    { id: 513, category: 'circuit', levels: ['industrial_engineer', 'engineer'], title: '노턴의 정리', definition: '전류원 1개와 병렬 저항 1개로 등가화.', formula: '$$ I_N = \\text{단락 전류}, R_N = R_{th} $$', frequency: '중' },
+    { id: 514, category: 'circuit', levels: ['industrial_engineer', 'engineer'], title: '무손실 선로 조건', definition: '감쇠가 없는 이상적 선로.', formula: '$$ R = 0, \\quad G = 0 $$\\n$$ Z_0 = \\sqrt{\\frac{L}{C}} $$', frequency: '상' },
+    { id: 515, category: 'circuit', levels: ['industrial_engineer', 'engineer'], title: '대칭 좌표법', definition: '불평형 회로 해석용 3성분.', formula: '$$ \\text{영상분}(I_0), \\text{정상분}(I_1), \\text{역상분}(I_2) $$', frequency: '상' },
+    { id: 516, category: 'circuit', levels: ['industrial_engineer', 'engineer'], title: '구동점 임피던스 극/영점', definition: 'Z(s)의 특성.', formula: '$$ \\text{극점(Pole): } Z(s) = \\infty $$\\n$$ \\text{영점(Zero): } Z(s) = 0 $$', frequency: '하' },
+    { id: 517, category: 'circuit', levels: ['industrial_engineer', 'engineer'], title: 'Z, Y 파라미터', definition: '2단자망 해석.', formula: '$$ Z_{11} = \\left. \\frac{V_1}{I_1} \\right|_{I_2=0} \\text (개방) $$', frequency: '중' },
+    { id: 518, category: 'circuit', levels: ['industrial_engineer', 'engineer'], title: '공진 시 Q (선택도)', definition: '공진의 예리함 정도.', formula: '$$ Q = \\frac{1}{R} \\sqrt{\\frac{L}{C}} = \\frac{f_0}{BW} $$', frequency: '중' },
+    { id: 519, category: 'circuit', levels: ['industrial_engineer', 'engineer'], title: '라플라스 회로 변환', definition: 's영역의 소자 임피던스.', formula: '$$ R \\to R, \\quad L \\to sL, \\quad C \\to \\frac{1}{sC} $$', frequency: '상' },
+    { id: 520, category: 'circuit', levels: ['industrial_engineer', 'engineer'], title: '비정현파의 전력', definition: '주파수가 같은 성분끼리만 전력 발생.', formula: '$$ P = V_0 I_0 + \\sum V_n I_n \\cos\\theta_n $$', frequency: '상' },
 
     // ===== 5. 제어공학 (20개) =====
-    { id: 601, category: 'control', title: '라플라스 기본 변환', definition: '시간함수 → s함수.', formula: '$$ \\mathcal{L}[u(t)] = \\frac{1}{s} $$\\n$$ \\mathcal{L}[e^{-at}] = \\frac{1}{s+a} $$', frequency: '상' },
-    { id: 602, category: 'control', title: '전달함수 G(s)', definition: '출력/입력 변환 비 (초기값 0).', formula: '$$ G(s) = \\frac{C(s)}{R(s)} $$', frequency: '상' },
-    { id: 603, category: 'control', title: '폐루프 전달함수', definition: '피드백 시스템의 전체 이득.', formula: '$$ T(s) = \\frac{G(s)}{1 \\pm G(s)H(s)} $$', frequency: '상' },
-    { id: 604, category: 'control', title: '정상상태 오차', definition: '시간이 무한대일 때의 편차.', formula: '$$ e_{ss} = \\lim_{s \\to 0} s E(s) $$', frequency: '상' },
-    { id: 605, category: 'control', title: '특성방정식 (2차)', definition: '시스템의 동특성 결정.', formula: '$$ s^2 + 2\\zeta\\omega_n s + \\omega_n^2 = 0 $$', frequency: '상' },
-    { id: 606, category: 'control', title: '감쇠비 (ζ)', definition: '진동 여부 지표.', formula: '$$ \\zeta < 1 \\text{ (부족감쇠/진동)} $$\\n$$ \\zeta = 1 \\text{ (임계감쇠)} $$', frequency: '중' },
-    { id: 607, category: 'control', title: '최대 오버슈트', definition: '목표값을 초과하는 최대량.', formula: '$$ M_p = e^{-\\frac{\\zeta\\pi}{\\sqrt{1-\\zeta^2}}} \\times 100 \\% $$', frequency: '중' },
-    { id: 608, category: 'control', title: '보드 선도 이득', definition: '주파수에 따른 크기(dB).', formula: '$$ G_{dB} = 20 \\log_{10} |G(j\\omega)| $$', frequency: '중' },
-    { id: 609, category: 'control', title: 'PID 제어 특성', definition: '제어계 응답 개선.', formula: '$$ \\text{I(적분): 잔류편차 제거} $$\\n$$ \\text{D(미분): 오버슈트 억제} $$', frequency: '상' },
-    { id: 610, category: 'control', title: '라우스 안정도 판별법', definition: '배열표 1열의 부호 변화로 판별.', formula: '$$ \\text{1열 부호 불변 } \\Rightarrow \\text{ 안정} $$', frequency: '상' },
-    { id: 611, category: 'control', title: '나이퀴스트 선도', definition: '주파수 궤적에 의한 판별.', formula: '$$ \\text{임계점 } (-1, j0) \\text{ 감싸면 불안정} $$', frequency: '중' },
-    { id: 612, category: 'control', title: '근궤적 점근선 교차점', definition: '무한대로 가는 근의 출발점.', formula: '$$ \\sigma = \\frac{\\sum P - \\sum Z}{P - Z} $$', frequency: '중' },
-    { id: 613, category: 'control', title: '이탈점', definition: '근궤적이 실수축을 벗어나는 점.', formula: '$$ \\frac{dK}{ds} = 0 $$', frequency: '중' },
-    { id: 614, category: 'control', title: '상태공간 방정식', definition: '행렬을 이용한 동특성 표현.', formula: '$$ \\dot{x} = Ax + Bu $$\\n$$ y = Cx + Du $$', frequency: '하' },
-    { id: 615, category: 'control', title: '메이슨(Mason) 정리', definition: '신호흐름선도에서 전달함수 산출.', formula: '$$ M = \\frac{\\sum P_k \\Delta_k}{\\Delta} $$', frequency: '상' },
-    { id: 616, category: 'control', title: '위상 여유 (PM)', definition: '안정 한계까지 남은 위상차.', formula: '$$ \\text{PM} = 180^\\circ + \\angle G(j\\omega_c) $$', frequency: '상' },
-    { id: 617, category: 'control', title: '이득 여유 (GM)', definition: '위상교차 주파수에서의 이득 마진.', formula: '$$ \\text{GM} = -20 \\log |G(j\\omega_p)| $$', frequency: '상' },
-    { id: 618, category: 'control', title: '보상기 (진상/지상)', definition: '시스템 특성 개선.', formula: '$$ \\text{진상: 위상 앞섬, 속도 개선} $$\\n$$ \\text{지상: 위상 뒤짐, 오차 개선} $$', frequency: '중' },
-    { id: 619, category: 'control', title: '최종값 정리', definition: 't→∞ 일 때의 값 확인.', formula: '$$ f(\\infty) = \\lim_{s \\to 0} s F(s) $$', frequency: '상' },
-    { id: 620, category: 'control', title: '초기값 정리', definition: 't→0 일 때의 값 확인.', formula: '$$ f(0) = \\lim_{s \\to \\infty} s F(s) $$', frequency: '상' },
+    { id: 601, category: 'control', levels: ['engineer'], title: '라플라스 기본 변환', definition: '시간함수 → s함수.', formula: '$$ \\mathcal{L}[u(t)] = \\frac{1}{s} $$\\n$$ \\mathcal{L}[e^{-at}] = \\frac{1}{s+a} $$', frequency: '상' },
+    { id: 602, category: 'control', levels: ['engineer'], title: '전달함수 G(s)', definition: '출력/입력 변환 비 (초기값 0).', formula: '$$ G(s) = \\frac{C(s)}{R(s)} $$', frequency: '상' },
+    { id: 603, category: 'control', levels: ['engineer'], title: '폐루프 전달함수', definition: '피드백 시스템의 전체 이득.', formula: '$$ T(s) = \\frac{G(s)}{1 \\pm G(s)H(s)} $$', frequency: '상' },
+    { id: 604, category: 'control', levels: ['engineer'], title: '정상상태 오차', definition: '시간이 무한대일 때의 편차.', formula: '$$ e_{ss} = \\lim_{s \\to 0} s E(s) $$', frequency: '상' },
+    { id: 605, category: 'control', levels: ['engineer'], title: '특성방정식 (2차)', definition: '시스템의 동특성 결정.', formula: '$$ s^2 + 2\\zeta\\omega_n s + \\omega_n^2 = 0 $$', frequency: '상' },
+    { id: 606, category: 'control', levels: ['engineer'], title: '감쇠비 (ζ)', definition: '진동 여부 지표.', formula: '$$ \\zeta < 1 \\text (부족감쇠/진동) $$\\n$$ \\zeta = 1 \\text (임계감쇠) $$', frequency: '중' },
+    { id: 607, category: 'control', levels: ['engineer'], title: '최대 오버슈트', definition: '목표값을 초과하는 최대량.', formula: '$$ M_p = e^{-\\frac{\\zeta\\pi}{\\sqrt{1-\\zeta^2}}} \\times 100 \\% $$', frequency: '중' },
+    { id: 608, category: 'control', levels: ['engineer'], title: '보드 선도 이득', definition: '주파수에 따른 크기(dB).', formula: '$$ G_{dB} = 20 \\log_{10} |G(j\\omega)| $$', frequency: '중' },
+    { id: 609, category: 'control', levels: ['engineer'], title: 'PID 제어 특성', definition: '제어계 응답 개선.', formula: '$$ \\text{I(적분): 잔류편차 제거} $$\\n$$ \\text{D(미분): 오버슈트 억제} $$', frequency: '상' },
+    { id: 610, category: 'control', levels: ['engineer'], title: '라우스 안정도 판별법', definition: '배열표 1열의 부호 변화로 판별.', formula: '$$ \\text{1열 부호 불변 } \\Rightarrow \\text{ 안정} $$', frequency: '상' },
+    { id: 611, category: 'control', levels: ['engineer'], title: '나이퀴스트 선도', definition: '주파수 궤적에 의한 판별.', formula: '$$ \\text{임계점 } (-1, j0) \\text{ 감싸면 불안정} $$', frequency: '중' },
+    { id: 612, category: 'control', levels: ['engineer'], title: '근궤적 점근선 교차점', definition: '무한대로 가는 근의 출발점.', formula: '$$ \\sigma = \\frac{\\sum P - \\sum Z}{P - Z} $$', frequency: '중' },
+    { id: 613, category: 'control', levels: ['engineer'], title: '이탈점', definition: '근궤적이 실수축을 벗어나는 점.', formula: '$$ \\frac{dK}{ds} = 0 $$', frequency: '중' },
+    { id: 614, category: 'control', levels: ['engineer'], title: '상태공간 방정식', definition: '행렬을 이용한 동특성 표현.', formula: '$$ \\dot{x} = Ax + Bu $$\\n$$ y = Cx + Du $$', frequency: '하' },
+    { id: 615, category: 'control', levels: ['engineer'], title: '메이슨(Mason) 정리', definition: '신호흐름선도에서 전달함수 산출.', formula: '$$ M = \\frac{\\sum P_k \\Delta_k}{\\Delta} $$', frequency: '상' },
+    { id: 616, category: 'control', levels: ['engineer'], title: '위상 여유 (PM)', definition: '안정 한계까지 남은 위상차.', formula: '$$ \\text{PM} = 180^\\circ + \\angle G(j\\omega_c) $$', frequency: '상' },
+    { id: 617, category: 'control', levels: ['engineer'], title: '이득 여유 (GM)', definition: '위상교차 주파수에서의 이득 마진.', formula: '$$ \\text{GM} = -20 \\log |G(j\\omega_p)| $$', frequency: '상' },
+    { id: 618, category: 'control', levels: ['engineer'], title: '보상기 (진상/지상)', definition: '시스템 특성 개선.', formula: '$$ \\text{진상: 위상 앞섬, 속도 개선} $$\\n$$ \\text{지상: 위상 뒤짐, 오차 개선} $$', frequency: '중' },
+    { id: 619, category: 'control', levels: ['engineer'], title: '최종값 정리', definition: 't→∞ 일 때의 값 확인.', formula: '$$ f(\\infty) = \\lim_{s \\to 0} s F(s) $$', frequency: '상' },
+    { id: 620, category: 'control', levels: ['engineer'], title: '초기값 정리', definition: 't→0 일 때의 값 확인.', formula: '$$ f(0) = \\lim_{s \\to \\infty} s F(s) $$', frequency: '상' },
 
     // ===== 6. 전기설비기준 (20개) =====
-    { id: 701, category: 'regulation', title: '전압 종별', definition: '교류/직류 기준.', formula: '$$ \\text{저압: AC 1kV, DC 1.5kV 이하} $$\\n$$ \\text{특고압: 7kV 초과} $$', frequency: '상' },
-    { id: 702, category: 'regulation', title: '저압 절연저항', definition: '최소 저항치.', formula: '$$ \\text{SELV: 0.5 M}\\Omega \\text{ 이상} $$\\n$$ \\text{500V 이하: 1.0 M}\\Omega \\text{ 이상} $$', frequency: '상' },
-    { id: 703, category: 'regulation', title: '절연내력 시험', definition: '10분간 견디는 전압.', formula: '$$ \\text{7kV 이하: 1.5배} $$\\n$$ \\text{22.9kV 다중접지: 0.92배} $$', frequency: '상' },
-    { id: 704, category: 'regulation', title: '접지선 최소 단면적', definition: '고장 시 안전 굵기.', formula: '$$ S = \\frac{\\sqrt{I^2 t}}{k} \\text{ [mm}^2\\text{]} $$', frequency: '중' },
-    { id: 705, category: 'regulation', title: '전압강하 허용 기준', definition: '저압 수전 시 한도.', formula: '$$ \\text{조명: 3\\%} $$\\n$$ \\text{동력: 5\\%} $$', frequency: '상' },
-    { id: 706, category: 'regulation', title: '접지 시스템', definition: '전원과 기기 연결.', formula: '$$ \\text{TN: 전원 직접 접지, PE 연결} $$\\n$$ \\text{TT: 기기 독립 접지} $$', frequency: '상' },
-    { id: 707, category: 'regulation', title: '가공전선 지표상 높이', definition: '도로 횡단 안전 높이.', formula: '$$ \\text{저고압 도로: 6m 이상} $$\\n$$ \\text{철도 횡단: 6.5m 이상} $$', frequency: '상' },
-    { id: 708, category: 'regulation', title: '지중전선 매설 깊이', definition: '차량 압력 여부에 따른 깊이.', formula: '$$ \\text{압력 O: 1.0m 이상} $$\\n$$ \\text{압력 X: 0.6m 이상} $$', frequency: '상' },
-    { id: 709, category: 'regulation', title: '과전류 차단기 규격', definition: '전선 보호 조건.', formula: '$$ I_b \\le I_n \\le I_z $$ (설계전류 ≤ 정격 ≤ 허용전류)', frequency: '중' },
-    { id: 710, category: 'regulation', title: '누전차단기 설치', definition: '감전 방지 필수.', formula: '$$ \\text{욕실, 습기 있는 곳: 15mA, 0.03초} $$', frequency: '상' },
-    { id: 711, category: 'regulation', title: '옥내배선 공사', definition: '은폐 장소 가능 공사.', formula: '$$ \\text{합성수지관, 금속관, 케이블} $$', frequency: '상' },
-    { id: 712, category: 'regulation', title: '방폭 설비', definition: '가연성 가스 지역.', formula: '$$ \\text{내압, 유입, 본질안전 방폭 등} $$', frequency: '중' },
-    { id: 713, category: 'regulation', title: '피뢰시스템 (LPS)', definition: '건물 낙뢰 보호.', formula: '$$ \\text{수뢰부 - 인하도선 - 접지극} $$', frequency: '상' },
-    { id: 714, category: 'regulation', title: '이격거리', definition: '저고압 가공전선과 건조물.', formula: '$$ \\text{상부(지붕): 2.0m (절연 1.0m)} $$', frequency: '상' },
-    { id: 715, category: 'regulation', title: '보안공사 경간', definition: '안전 강화 철탑 간격.', formula: '$$ \\text{제1종 특고압: 철탑 400m 이하} $$', frequency: '상' },
-    { id: 716, category: 'regulation', title: '애자 사용 공사', definition: '전선과 조영재 이격.', formula: '$$ \\text{2.5cm 이상 (400V 미만)} $$', frequency: '상' },
-    { id: 717, category: 'regulation', title: '태양광 발전 설비', definition: '모듈 안전 기준.', formula: '$$ \\text{프레임 접지, 직류 전로 지락 차단} $$', frequency: '상' },
-    { id: 718, category: 'regulation', title: '등전위 본딩', definition: '전위차 해소.', formula: '$$ \\text{주등전위, 보조등전위 본딩} $$', frequency: '상' },
-    { id: 719, category: 'regulation', title: '전선 색상 (KEC)', definition: '상별 규정 색상.', formula: '$$ \\text{L1:갈, L2:흑, L3:회, N:청, PE:녹/노} $$', frequency: '상' },
-    { id: 720, category: 'regulation', title: '수소냉각식 발전기', definition: '수소 가스 압력 및 온도 감지.', formula: '$$ \\text{수소 순도 85\\% 이하 시 경보} $$', frequency: '하' },
+    { id: 701, category: 'regulation', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '전압 종별', definition: '교류/직류 기준.', formula: '$$ \\text{저압: AC 1kV, DC 1.5kV 이하} $$\\n$$ \\text{특고압: 7kV 초과} $$', frequency: '상' },
+    { id: 702, category: 'regulation', levels: ['industrial_engineer', 'engineer'], title: '저압 절연저항', definition: '최소 저항치.', formula: '$$ \\text{SELV: 0.5 M}\\Omega \\text{ 이상} $$\\n$$ \\text{500V 이하: 1.0 M}\\Omega \\text{ 이상} $$', frequency: '상' },
+    { id: 703, category: 'regulation', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '절연내력 시험', definition: '10분간 견디는 전압.', formula: '$$ \\text{7kV 이하: 1.5배} $$\\n$$ \\text{22.9kV 다중접지: 0.92배} $$', frequency: '상' },
+    { id: 704, category: 'regulation', levels: ['industrial_engineer', 'engineer'], title: '접지선 최소 단면적', definition: '고장 시 안전 굵기.', formula: '$$ S = \\frac{\\sqrt{I^2 t}}{k} \\text{ [mm}^2\\text{]} $$', frequency: '중' },
+    { id: 705, category: 'regulation', levels: ['industrial_engineer', 'engineer'], title: '전압강하 허용 기준', definition: '저압 수전 시 한도.', formula: '$$ \\text{조명: 3\\%} $$\\n$$ \\text{동력: 5\\%} $$', frequency: '상' },
+    { id: 706, category: 'regulation', levels: ['industrial_engineer', 'engineer'], title: '접지 시스템', definition: '전원과 기기 연결.', formula: '$$ \\text{TN: 전원 직접 접지, PE 연결} $$\\n$$ \\text{TT: 기기 독립 접지} $$', frequency: '상' },
+    { id: 707, category: 'regulation', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '가공전선 지표상 높이', definition: '도로 횡단 안전 높이.', formula: '$$ \\text{저고압 도로: 6m 이상} $$\\n$$ \\text{철도 횡단: 6.5m 이상} $$', frequency: '상' },
+    { id: 708, category: 'regulation', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '지중전선 매설 깊이', definition: '차량 압력 여부에 따른 깊이.', formula: '$$ \\text{압력 O: 1.0m 이상} $$\\n$$ \\text{압력 X: 0.6m 이상} $$', frequency: '상' },
+    { id: 709, category: 'regulation', levels: ['industrial_engineer', 'engineer'], title: '과전류 차단기 규격', definition: '전선 보호 조건.', formula: '$$ I_b \\le I_n \\le I_z $$ (설계전류 ≤ 정격 ≤ 허용전류)', frequency: '중' },
+    { id: 710, category: 'regulation', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '누전차단기 설치', definition: '감전 방지 필수.', formula: '$$ \\text{욕실, 습기 있는 곳: 15mA, 0.03초} $$', frequency: '상' },
+    { id: 711, category: 'regulation', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '옥내배선 공사', definition: '은폐 장소 가능 공사.', formula: '$$ \\text{합성수지관, 금속관, 케이블} $$', frequency: '상' },
+    { id: 712, category: 'regulation', levels: ['industrial_engineer', 'engineer'], title: '방폭 설비', definition: '가연성 가스 지역.', formula: '$$ \\text{내압, 유입, 본질안전 방폭 등} $$', frequency: '중' },
+    { id: 713, category: 'regulation', levels: ['industrial_engineer', 'engineer'], title: '피뢰시스템 (LPS)', definition: '건물 낙뢰 보호.', formula: '$$ \\text{수뢰부 - 인하도선 - 접지극} $$', frequency: '상' },
+    { id: 714, category: 'regulation', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '이격거리', definition: '저고압 가공전선과 건조물.', formula: '$$ \\text{상부(지붕): 2.0m (절연 1.0m)} $$', frequency: '상' },
+    { id: 715, category: 'regulation', levels: ['industrial_engineer', 'engineer'], title: '보안공사 경간', definition: '안전 강화 철탑 간격.', formula: '$$ \\text{제1종 특고압: 철탑 400m 이하} $$', frequency: '상' },
+    { id: 716, category: 'regulation', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '애자 사용 공사', definition: '전선과 조영재 이격.', formula: '$$ \\text{2.5cm 이상 (400V 미만)} $$', frequency: '상' },
+    { id: 717, category: 'regulation', levels: ['industrial_engineer', 'engineer'], title: '태양광 발전 설비', definition: '모듈 안전 기준.', formula: '$$ \\text{프레임 접지, 직류 전로 지락 차단} $$', frequency: '상' },
+    { id: 718, category: 'regulation', levels: ['industrial_engineer', 'engineer'], title: '등전위 본딩', definition: '전위차 해소.', formula: '$$ \\text{주등전위, 보조등전위 본딩} $$', frequency: '상' },
+    { id: 719, category: 'regulation', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '전선 색상 (KEC)', definition: '상별 규정 색상.', formula: '$$ \\text{L1:갈, L2:흑, L3:회, N:청, PE:녹/노} $$', frequency: '상' },
+    { id: 720, category: 'regulation', levels: ['industrial_engineer', 'engineer'], title: '수소냉각식 발전기', definition: '수소 가스 압력 및 온도 감지.', formula: '$$ \\text{수소 순도 85\\% 이하 시 경보} $$', frequency: '하' },
 
     // ===== 7. 실기: 단답·수변전 (20개) =====
-    { id: 801, category: 'prac_short', title: '콘덴서 용량 산정', definition: '역률 개선용 무효전력.', formula: '$$ Q_c = P (\\tan\\theta_1 - \\tan\\theta_2) $$', frequency: '상' },
-    { id: 802, category: 'prac_short', title: '차단기 차단 용량', definition: '사고 시 끊을 수 있는 전력.', formula: '$$ P_s = \\sqrt{3} V_n I_s \\text{ [MVA]} $$', frequency: '상' },
-    { id: 803, category: 'prac_short', title: '변압기 전일 효율', definition: '24시간 기준 효율.', formula: '$$ \\eta_d = \\frac{\\text{하루 출력량}}{\\text{출력량} + 24P_i + P_c \\Sigma t} \\times 100 $$', frequency: '상' },
-    { id: 804, category: 'prac_short', title: 'V결선 이용률/출력비', definition: '단상 2대 3상 공급.', formula: '$$ \\text{이용률} = 86.6\\%, \\text{ 출력비} = 57.7\\% $$', frequency: '상' },
-    { id: 805, category: 'prac_short', title: '펌프 소요 동력', definition: '물 끌어올리는 모터 출력.', formula: '$$ P = \\frac{9.8 Q H}{\\eta} K \\text{ [kW]} $$', frequency: '상' },
-    { id: 806, category: 'prac_short', title: '권상기 소요 동력', definition: '엘리베이터 모터 출력.', formula: '$$ P = \\frac{W V}{6120 \\eta} \\text{ [kW]} $$', frequency: '중' },
-    { id: 807, category: 'prac_short', title: 'CT 2차 전류', definition: '계기용 변류기 출력 전류.', formula: '$$ I_2 = I_1 \\times \\frac{5}{CT_{1\\text{차}}} $$', frequency: '상' },
-    { id: 808, category: 'prac_short', title: '피뢰기 구비조건 4가지', definition: '이상전압 방어.', formula: '$$ \\text{1. 제한/충격방전개시 전압 낮을 것} $$\\n$$ \\text{2. 속류차단능력 클 것} $$', frequency: '상' },
-    { id: 809, category: 'prac_short', title: '역률 개선 효과 4가지', definition: '콘덴서 설치 이점.', formula: '$$ \\text{전력손실/전압강하 감소} $$\\n$$ \\text{설비여력 증가, 요금 절감} $$', frequency: '상' },
-    { id: 810, category: 'prac_short', title: 'MOF (계기용변성기)', definition: '전력량계 전원 공급.', formula: '$$ \\text{PT와 CT를 한 함에 내장} $$', frequency: '상' },
-    { id: 811, category: 'prac_short', title: 'CT 2차측 개방 금지', definition: '절연 파괴 방지.', formula: '$$ \\text{계기 교체 시 반드시 2차측 단락} $$', frequency: '상' },
-    { id: 812, category: 'prac_short', title: '지락계전기 (GR, SGR)', definition: '누전 사고 감지.', formula: '$$ \\text{ZCT(영상변류기)와 조합하여 동작} $$', frequency: '상' },
-    { id: 813, category: 'prac_short', title: '코로나 임계전압', definition: '절연 파괴 시작 전압.', formula: '$$ E_0 = 24.3 m_0 m_1 \\delta d \\log\\frac{D}{r} $$', frequency: '중' },
-    { id: 814, category: 'prac_short', title: 'CB와 DS 조작 순서', definition: '아크 차단 능력 유무.', formula: '$$ \\text{투입: DS } \\to \\text{ CB} $$\\n$$ \\text{차단: CB } \\to \\text{ DS} $$', frequency: '상' },
-    { id: 815, category: 'prac_short', title: '변압기 병렬운전 조건', definition: '순환전류 방지.', formula: '$$ \\text{극성, 정격전압, } \\%Z \\text{ 일치할 것} $$', frequency: '상' },
-    { id: 816, category: 'prac_short', title: '수변전 단선도 순서', definition: '기본 배치 순서.', formula: '$$ \\text{ASS } \\to \\text{ LA } \\to \\text{ MOF } \\to \\text{ CB } \\to \\text{ TR} $$', frequency: '상' },
-    { id: 817, category: 'prac_short', title: '축전지 용량', definition: '비상 전원 배터리 크기.', formula: '$$ C = \\frac{1}{L} [K_1 I_1 + K_2(I_2 - I_1)] $$', frequency: '중' },
-    { id: 818, category: 'prac_short', title: '서지흡수기 (SA)', definition: '개폐 서지 보호.', formula: '$$ \\text{VCB 2차측과 몰드TR 사이에 설치} $$', frequency: '상' },
-    { id: 819, category: 'prac_short', title: '단락비(K) 특징', definition: '단락비가 큰 철기계 특성.', formula: '$$ \\text{동기임피던스 작고 전압변동률 낮음} $$', frequency: '중' },
-    { id: 820, category: 'prac_short', title: 'GPT (접지형계기용변압기)', definition: '비접지 영상전압 검출.', formula: '$$ \\text{오픈델타 결선에 한류저항 연결} $$', frequency: '상' },
+    { id: 801, category: 'prac_short', levels: ['industrial_engineer', 'engineer'], title: '콘덴서 용량 산정', definition: '역률 개선용 무효전력.', formula: '$$ Q_c = P (\\tan\\theta_1 - \\tan\\theta_2) $$', frequency: '상' },
+    { id: 802, category: 'prac_short', levels: ['industrial_engineer', 'engineer'], title: '차단기 차단 용량', definition: '사고 시 끊을 수 있는 전력.', formula: '$$ P_s = \\sqrt{3} V_n I_s \\text{ [MVA]} $$', frequency: '상' },
+    { id: 803, category: 'prac_short', levels: ['industrial_engineer', 'engineer'], title: '변압기 전일 효율', definition: '24시간 기준 효율.', formula: '$$ \\eta_d = \\frac{\\text{하루 출력량}}{\\text{출력량} + 24P_i + P_c \\Sigma t} \\times 100 $$', frequency: '상' },
+    { id: 804, category: 'prac_short', levels: ['industrial_engineer', 'engineer'], title: 'V결선 이용률/출력비', definition: '단상 2대 3상 공급.', formula: '$$ \\text{이용률} = 86.6\\%, \\text{ 출력비} = 57.7\\% $$', frequency: '상' },
+    { id: 805, category: 'prac_short', levels: ['industrial_engineer', 'engineer'], title: '펌프 소요 동력', definition: '물 끌어올리는 모터 출력.', formula: '$$ P = \\frac{9.8 Q H}{\\eta} K \\text{ [kW]} $$', frequency: '상' },
+    { id: 806, category: 'prac_short', levels: ['industrial_engineer', 'engineer'], title: '권상기 소요 동력', definition: '엘리베이터 모터 출력.', formula: '$$ P = \\frac{W V}{6120 \\eta} \\text{ [kW]} $$', frequency: '중' },
+    { id: 807, category: 'prac_short', levels: ['industrial_engineer', 'engineer'], title: 'CT 2차 전류', definition: '계기용 변류기 출력 전류.', formula: '$$ I_2 = I_1 \\times \\frac{5}{CT_{1\\text{차}}} $$', frequency: '상' },
+    { id: 808, category: 'prac_short', levels: ['industrial_engineer', 'engineer'], title: '피뢰기 구비조건 4가지', definition: '이상전압 방어.', formula: '$$ \\text{1. 제한/충격방전개시 전압 낮을 것} $$\\n$$ \\text{2. 속류차단능력 클 것} $$', frequency: '상' },
+    { id: 809, category: 'prac_short', levels: ['industrial_engineer', 'engineer'], title: '역률 개선 효과 4가지', definition: '콘덴서 설치 이점.', formula: '$$ \\text{전력손실/전압강하 감소} $$\\n$$ \\text{설비여력 증가, 요금 절감} $$', frequency: '상' },
+    { id: 810, category: 'prac_short', levels: ['industrial_engineer', 'engineer'], title: 'MOF (계기용변성기)', definition: '전력량계 전원 공급.', formula: '$$ \\text{PT와 CT를 한 함에 내장} $$', frequency: '상' },
+    { id: 811, category: 'prac_short', levels: ['industrial_engineer', 'engineer'], title: 'CT 2차측 개방 금지', definition: '절연 파괴 방지.', formula: '$$ \\text{계기 교체 시 반드시 2차측 단락} $$', frequency: '상' },
+    { id: 812, category: 'prac_short', levels: ['industrial_engineer', 'engineer'], title: '지락계전기 (GR, SGR)', definition: '누전 사고 감지.', formula: '$$ \\text{ZCT(영상변류기)와 조합하여 동작} $$', frequency: '상' },
+    { id: 813, category: 'prac_short', levels: ['industrial_engineer', 'engineer'], title: '코로나 임계전압', definition: '절연 파괴 시작 전압.', formula: '$$ E_0 = 24.3 m_0 m_1 \\delta d \\log\\frac{D}{r} $$', frequency: '중' },
+    { id: 814, category: 'prac_short', levels: ['industrial_engineer', 'engineer'], title: 'CB와 DS 조작 순서', definition: '아크 차단 능력 유무.', formula: '$$ \\text{투입: DS } \\to \\text{ CB} $$\\n$$ \\text{차단: CB } \\to \\text{ DS} $$', frequency: '상' },
+    { id: 815, category: 'prac_short', levels: ['industrial_engineer', 'engineer'], title: '변압기 병렬운전 조건', definition: '순환전류 방지.', formula: '$$ \\text{극성, 정격전압, } \\%Z \\text{ 일치할 것} $$', frequency: '상' },
+    { id: 816, category: 'prac_short', levels: ['industrial_engineer', 'engineer'], title: '수변전 단선도 순서', definition: '기본 배치 순서.', formula: '$$ \\text{ASS } \\to \\text{ LA } \\to \\text{ MOF } \\to \\text{ CB } \\to \\text{ TR} $$', frequency: '상' },
+    { id: 817, category: 'prac_short', levels: ['industrial_engineer', 'engineer'], title: '축전지 용량', definition: '비상 전원 배터리 크기.', formula: '$$ C = \\frac{1}{L} [K_1 I_1 + K_2(I_2 - I_1)] $$', frequency: '중' },
+    { id: 818, category: 'prac_short', levels: ['industrial_engineer', 'engineer'], title: '서지흡수기 (SA)', definition: '개폐 서지 보호.', formula: '$$ \\text{VCB 2차측과 몰드TR 사이에 설치} $$', frequency: '상' },
+    { id: 819, category: 'prac_short', levels: ['industrial_engineer', 'engineer'], title: '단락비(K) 특징', definition: '단락비가 큰 철기계 특성.', formula: '$$ \\text{동기임피던스 작고 전압변동률 낮음} $$', frequency: '중' },
+    { id: 820, category: 'prac_short', levels: ['industrial_engineer', 'engineer'], title: 'GPT (접지형계기용변압기)', definition: '비접지 영상전압 검출.', formula: '$$ \\text{오픈델타 결선에 한류저항 연결} $$', frequency: '상' },
 
     // ===== 8. 실기: 시퀀스·PLC (20개) =====
-    { id: 901, category: 'prac_sequence', title: '자기유지 논리식', definition: '버튼 떼어도 유지.', formula: '$$ X = (PB_1 + X) \\cdot \\overline{PB_2} $$', frequency: '상' },
-    { id: 902, category: 'prac_sequence', title: '인터록 논리식', definition: '동시 투입 방지.', formula: '$$ X = A \\cdot \\overline{Y}, \\quad Y = B \\cdot \\overline{X} $$', frequency: '상' },
-    { id: 903, category: 'prac_sequence', title: '드모르간 정리', definition: '부정(NOT)의 분배.', formula: '$$ \\overline{A \\cdot B} = \\overline{A} + \\overline{B} $$', frequency: '상' },
-    { id: 904, category: 'prac_sequence', title: '배타적 논리합 (XOR)', definition: '서로 다를 때 1.', formula: '$$ A \\oplus B = A\\overline{B} + \\overline{A}B $$', frequency: '상' },
-    { id: 905, category: 'prac_sequence', title: '불 대수 흡수법칙', definition: '논리 간소화.', formula: '$$ A + AB = A $$\\n$$ A + \\overline{A}B = A + B $$', frequency: '상' },
-    { id: 906, category: 'prac_sequence', title: 'Y-Δ 기동 회로', definition: '유도전동기 기동.', formula: '$$ \\text{기동전류 } \\frac{1}{3}\\text{ 감소. 타이머로 절환} $$', frequency: '상' },
-    { id: 907, category: 'prac_sequence', title: '정역 회전 제어', definition: '모터 방향 역전.', formula: '$$ \\text{3선 중 2선 교체 + 인터록 필수} $$', frequency: '상' },
-    { id: 908, category: 'prac_sequence', title: '타이머 접점', definition: '한시동작 순시복귀.', formula: '$$ \\text{입력 후 t초 뒤 ON, 오프 시 즉시 OFF} $$', frequency: '상' },
-    { id: 909, category: 'prac_sequence', title: '전자접촉기 (MC)', definition: '주회로 대전류 개폐.', formula: '$$ \\text{조작 전원 투입 시 전자력으로 주접점 닫힘} $$', frequency: '상' },
-    { id: 910, category: 'prac_sequence', title: '열동계전기 (THR)', definition: '과부하 보호 트립.', formula: '$$ \\text{히터 발열로 b접점 열려 회로 차단} $$', frequency: '상' },
-    { id: 911, category: 'prac_sequence', title: '플리커 릴레이', definition: '점멸 반복 경보.', formula: '$$ \\text{설정 주기로 ON/OFF 반복} $$', frequency: '중' },
-    { id: 912, category: 'prac_sequence', title: '리미트 스위치 (LS)', definition: '물리적 위치 감지.', formula: '$$ \\text{문 열림 감지, 권상기 상하한 정지용} $$', frequency: '중' },
-    { id: 913, category: 'prac_sequence', title: '순차 제어 (컨베이어)', definition: '선행기기 우선 기동.', formula: '$$ \\text{선행 릴레이 a접점을 후행 조건에 삽입} $$', frequency: '상' },
-    { id: 914, category: 'prac_sequence', title: '단상 유도기 정역', definition: '방향 전환.', formula: '$$ \\text{보조(기동) 권선의 극성을 반대로 접속} $$', frequency: '중' },
-    { id: 915, category: 'prac_sequence', title: '플러깅 (역상 제동)', definition: '급정지 회로.', formula: '$$ \\text{역회전 접속으로 짧게 전원 투입 후 차단} $$', frequency: '중' },
-    { id: 916, category: 'prac_sequence', title: 'PLC 기본 명령 (LD/OUT)', definition: '래더 시작과 끝.', formula: '$$ \\text{LD: a접점 시작, OUT: 코일 출력} $$', frequency: '상' },
-    { id: 917, category: 'prac_sequence', title: 'PLC 직/병렬 (AND/OR)', definition: '접점 연결.', formula: '$$ \\text{AND: 직렬, OR: 병렬 결선} $$', frequency: '상' },
-    { id: 918, category: 'prac_sequence', title: 'PLC 타이머 (TON)', definition: 'On-Delay 타이머.', formula: '$$ \\text{입력 유지 시간 동안 카운트 후 출력} $$', frequency: '상' },
-    { id: 919, category: 'prac_sequence', title: 'PLC 카운터 (CTU)', definition: '업 카운터.', formula: '$$ \\text{입력 펄스 횟수가 설정값 도달 시 출력} $$', frequency: '상' },
-    { id: 920, category: 'prac_sequence', title: '카르노 맵 (K-Map)', definition: '논리식 최적화.', formula: '$$ 1\\text{을 } 2^n \\text{개 묶어 공통 변수 추출} $$', frequency: '중' },
+    { id: 901, category: 'prac_sequence', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '자기유지 논리식', definition: '버튼 떼어도 유지.', formula: '$$ X = (PB_1 + X) \\cdot \\overline{PB_2} $$', frequency: '상' },
+    { id: 902, category: 'prac_sequence', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '인터록 논리식', definition: '동시 투입 방지.', formula: '$$ X = A \\cdot \\overline{Y}, \\quad Y = B \\cdot \\overline{X} $$', frequency: '상' },
+    { id: 903, category: 'prac_sequence', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '드모르간 정리', definition: '부정(NOT)의 분배.', formula: '$$ \\overline{A \\cdot B} = \\overline{A} + \\overline{B} $$', frequency: '상' },
+    { id: 904, category: 'prac_sequence', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '배타적 논리합 (XOR)', definition: '서로 다를 때 1.', formula: '$$ A \\oplus B = A\\overline{B} + \\overline{A}B $$', frequency: '상' },
+    { id: 905, category: 'prac_sequence', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '불 대수 흡수법칙', definition: '논리 간소화.', formula: '$$ A + AB = A $$\\n$$ A + \\overline{A}B = A + B $$', frequency: '상' },
+    { id: 906, category: 'prac_sequence', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: 'Y-Δ 기동 회로', definition: '유도전동기 기동.', formula: '$$ \\text{기동전류 } \\frac{1}{3}\\text{ 감소. 타이머로 절환} $$', frequency: '상' },
+    { id: 907, category: 'prac_sequence', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '정역 회전 제어', definition: '모터 방향 역전.', formula: '$$ \\text{3선 중 2선 교체 + 인터록 필수} $$', frequency: '상' },
+    { id: 908, category: 'prac_sequence', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '타이머 접점', definition: '한시동작 순시복귀.', formula: '$$ \\text{입력 후 t초 뒤 ON, 오프 시 즉시 OFF} $$', frequency: '상' },
+    { id: 909, category: 'prac_sequence', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '전자접촉기 (MC)', definition: '주회로 대전류 개폐.', formula: '$$ \\text{조작 전원 투입 시 전자력으로 주접점 닫힘} $$', frequency: '상' },
+    { id: 910, category: 'prac_sequence', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '열동계전기 (THR)', definition: '과부하 보호 트립.', formula: '$$ \\text{히터 발열로 b접점 열려 회로 차단} $$', frequency: '상' },
+    { id: 911, category: 'prac_sequence', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '플리커 릴레이', definition: '점멸 반복 경보.', formula: '$$ \\text{설정 주기로 ON/OFF 반복} $$', frequency: '중' },
+    { id: 912, category: 'prac_sequence', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '리미트 스위치 (LS)', definition: '물리적 위치 감지.', formula: '$$ \\text{문 열림 감지, 권상기 상하한 정지용} $$', frequency: '중' },
+    { id: 913, category: 'prac_sequence', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '순차 제어 (컨베이어)', definition: '선행기기 우선 기동.', formula: '$$ \\text{선행 릴레이 a접점을 후행 조건에 삽입} $$', frequency: '상' },
+    { id: 914, category: 'prac_sequence', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '단상 유도기 정역', definition: '방향 전환.', formula: '$$ \\text{보조(기동) 권선의 극성을 반대로 접속} $$', frequency: '중' },
+    { id: 915, category: 'prac_sequence', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '플러깅 (역상 제동)', definition: '급정지 회로.', formula: '$$ \\text{역회전 접속으로 짧게 전원 투입 후 차단} $$', frequency: '중' },
+    { id: 916, category: 'prac_sequence', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: 'PLC 기본 명령 (LD/OUT)', definition: '래더 시작과 끝.', formula: '$$ \\text{LD: a접점 시작, OUT: 코일 출력} $$', frequency: '상' },
+    { id: 917, category: 'prac_sequence', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: 'PLC 직/병렬 (AND/OR)', definition: '접점 연결.', formula: '$$ \\text{AND: 직렬, OR: 병렬 결선} $$', frequency: '상' },
+    { id: 918, category: 'prac_sequence', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: 'PLC 타이머 (TON)', definition: 'On-Delay 타이머.', formula: '$$ \\text{입력 유지 시간 동안 카운트 후 출력} $$', frequency: '상' },
+    { id: 919, category: 'prac_sequence', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: 'PLC 카운터 (CTU)', definition: '업 카운터.', formula: '$$ \\text{입력 펄스 횟수가 설정값 도달 시 출력} $$', frequency: '상' },
+    { id: 920, category: 'prac_sequence', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '카르노 맵 (K-Map)', definition: '논리식 최적화.', formula: '$$ 1\\text{을 } 2^n \\text{개 묶어 공통 변수 추출} $$', frequency: '중' },
 
     // ===== 9. 실기: 테이블스펙 (20개) =====
-    { id: 1001, category: 'prac_table', title: '전선 굵기 단면적 (단상)', definition: '전압강하 기준 단면적 산출.', formula: '$$ A = \\frac{35.6 \\cdot L \\cdot I}{1000 \\cdot e} \\text{ [mm}^2\\text{]} $$', frequency: '상' },
+    { id: 1001, category: 'prac_table', levels: ['industrial_engineer', 'engineer'], title: '전선 굵기 단면적 (단상)', definition: '전압강하 기준 단면적 산출.', formula: '$$ A = \\frac{35.6 \\cdot L \\cdot I}{1000 \\cdot e} \\text{ [mm}^2\\text{]} $$', frequency: '상' },
     { id: 1002, category: 'prac_table', title: '전선 굵기 단면적 (3상)', definition: '3상 동력 단면적 산출.', formula: '$$ A = \\frac{30.8 \\cdot L \\cdot I}{1000 \\cdot e} \\text{ [mm}^2\\text{]} $$', frequency: '상' },
     { id: 1003, category: 'prac_table', title: '조명 설계 (FUN=EAD)', definition: '등기구 수 산출.', formula: '$$ N = \\frac{E \\cdot A \\cdot D}{F \\cdot U} $$', frequency: '상' },
     { id: 1004, category: 'prac_table', title: '실지수 (Room Index)', definition: '방 크기 효율 계수.', formula: '$$ RI = \\frac{X \\cdot Y}{H(X + Y)} $$', frequency: '중' },
-    { id: 1005, category: 'prac_table', title: '분기회로 수 계산', definition: '차단기 개수.', formula: '$$ N = \\frac{\\text{면적} \\times \\text{부하밀도} + \\text{가산부하}}{V \\times 15\\text{A}} $$', frequency: '상' },
+    { id: 1005, category: 'prac_table', title: '분기회로 수 계산', definition: '차단기 개수.', formula: '$$ N = \\frac{\\text{면적} \\times \\text{부하밀도} + \\text{가산부하}}{V \\times 15\\text{A} } $$', frequency: '상' },
     { id: 1006, category: 'prac_table', title: '변압기 뱅크 용량', definition: '수용률/부등률 적용 전체 용량.', formula: '$$ T_r = \\frac{\\sum(\\text{설비} \\times \\text{수용률})}{\\text{부등률} \\times \\cos\\theta} $$', frequency: '상' },
     { id: 1007, category: 'prac_table', title: '간선 허용전류', definition: '전동기 부하 기준 간선 굵기.', formula: '$$ I_{motor} \\le 50\\text{A} \\Rightarrow 1.25 I_m $$\\n$$ I_{motor} > 50\\text{A} \\Rightarrow 1.1 I_m $$', frequency: '상' },
     { id: 1008, category: 'prac_table', title: '전선 굵기 3요소', definition: '설계 최우선.', formula: '$$ \\text{1. 허용전류, 2. 전압강하, 3. 기계적강도} $$', frequency: '상' },
@@ -229,7 +236,7 @@ const electricianData = {
     { id: 1010, category: 'prac_table', title: '금속관 굵기 선정', definition: '단면적 혼용 시 기준.', formula: '$$ \\text{전선 총 피복 단면적 } \\le \\text{ 관 내단면적의 32\\%} $$', frequency: '중' },
     { id: 1011, category: 'prac_table', title: '수용가 부하 상정', definition: '표준 부하 밀도.', formula: '$$ \\text{바닥면적} \\times \\text{표준부하}[\\text{VA/m}^2] + \\text{가산} $$', frequency: '상' },
     { id: 1012, category: 'prac_table', title: '과전류 차단기 용량', definition: '표 대조 산정.', formula: '$$ \\text{가장 큰 모터 기동전류 + 나머지 부하} $$', frequency: '상' },
-    { id: 1013, category: 'prac_table', title: '콘덴서 용량 승수(K)', definition: '역률 표에서 교차점 확인.', formula: '$$ Q_c = P \\times K \\text (표에서 찾은 승수) $$', frequency: '상' },
+    { id: 1013, category: 'prac_table', title: '콘덴서 용량 승수(K)', definition: '역률 표에서 교차점 확인.', formula: '$$ Q_c = P \\times K \\text { (표에서 찾은 승수)} $$', frequency: '상' },
     { id: 1014, category: 'prac_table', title: '케이블 허용전류 감소계수', definition: '다수 전선 집합 시 열 발생.', formula: '$$ I_{allow} = \\text{표준 허용전류} \\times \\text{감소계수} $$', frequency: '상' },
     { id: 1015, category: 'prac_table', title: 'CT 배수 (여유율)', definition: '계기용 변류기 1차측 선정.', formula: '$$ \\text{CT 1차} = \\text{부하전류} \\times (1.25 \\sim 1.5) $$', frequency: '상' },
     { id: 1016, category: 'prac_table', title: '방폭 기구 등급 표', definition: '위험 지역 구분.', formula: '$$ \\text{내압(d), 안전증(e), 본질안전(i)} $$', frequency: '중' },
@@ -246,7 +253,6 @@ const STORAGE_KEYS = {
   darkMode: 'electrician_darkmode'
 };
 
-// 자격 요건 고정 데이터
 const qualificationRequirements = [
   {
     grade: "전기기능사",
@@ -282,27 +288,182 @@ const qualificationRequirements = [
   }
 ];
 
-// 모의고사 자격 정보 및 과목 연동 정보 규정
 const mockExamSettings = {
-    craftsman: {
-        name: "전기기능사 필기 모의고사",
-        timeLimit: 60 * 60, // 60분
-        totalQuestions: 60,
-        passingScore: 60,
-        subjects: ['foundation', 'machine', 'regulation']
-    },
-    industrial: {
-        name: "전기산업기사 필기 모의고사",
-        timeLimit: 150 * 60, // 150분
-        totalQuestions: 100,
-        passingScore: 60,
-        subjects: ['electromagnetics', 'power', 'machine', 'circuit', 'regulation']
-    },
-    engineer: {
-        name: "전기기사 필기 모의고사",
-        timeLimit: 150 * 60, // 150분
-        totalQuestions: 100,
-        passingScore: 60,
-        subjects: ['electromagnetics', 'power', 'machine', 'circuit', 'control', 'regulation']
-    }
+  craftsman: {
+    name: "전기기능사 필기 모의고사",
+    timeLimit: 60 * 60,
+    totalQuestions: 60,
+    passingScore: 60,
+    subjects: ['foundation', 'machine', 'regulation']
+  },
+  industrial: {
+    name: "전기산업기사 필기 모의고사",
+    timeLimit: 150 * 60,
+    totalQuestions: 100,
+    passingScore: 60,
+    subjects: ['electromagnetics', 'power', 'machine', 'circuit', 'regulation']
+  },
+  engineer: {
+    name: "전기기사 필기 모의고사",
+    timeLimit: 150 * 60,
+    totalQuestions: 100,
+    passingScore: 60,
+    subjects: ['electromagnetics', 'power', 'machine', 'circuit', 'control', 'regulation']
+  }
 };
+
+// ==========================================================================
+// 여기서부터 비즈니스 로직 및 동적 UI 바인딩 코어 엔진
+// ==========================================================================
+
+function renderPlatform() {
+  // DOM 셀렉터 추출 (사용자 인터페이스 엘리먼트 바인딩)
+  const selectedLevel = document.getElementById("levelSelect") ? document.getElementById("levelSelect").value : "engineer";
+  const selectedMode = document.getElementById("modeSelect") ? document.getElementById("modeSelect").value : "written";
+  
+  const categoryContainer = document.getElementById("categoryList");
+  const conceptContainer = document.getElementById("conceptList");
+  const requirementContainer = document.getElementById("qualificationInfo");
+  const mockSettingsContainer = document.getElementById("mockExamInfo");
+
+  // 1. 카테고리(과목) 렌더링 엔진 (등급 및 필기/실기 모드 스위칭 연동)
+  if (categoryContainer) {
+    categoryContainer.innerHTML = "";
+    const filteredCategories = electricianData.categories.filter(cat => 
+      cat.mode === selectedMode && cat.levels.includes(selectedLevel)
+    );
+    
+    if (filteredCategories.length === 0) {
+      categoryContainer.innerHTML = "<p class='no-data'>활성화된 과목 카테고리가 없습니다.</p>";
+    } else {
+      filteredCategories.forEach(cat => {
+        categoryContainer.innerHTML += `
+          <button class="category-btn" style="border-left: 5px solid ${cat.color};" onclick="filterBySpecificCategory('${cat.id}')">
+            <span class="icon">${cat.icon}</span> ${cat.name}
+          </button>
+        `;
+      });
+    }
+  }
+
+  // 2. 핵심 개념 리스트 렌더링 엔진 (MathJax 유동성 확보)
+  if (conceptContainer) {
+    conceptContainer.innerHTML = "";
+    const filteredConcepts = electricianData.concepts.filter(con => {
+      const isLevelMatch = con.levels.includes(selectedLevel);
+      const categoryObj = electricianData.categories.find(c => c.id === con.category);
+      const isModeMatch = categoryObj && categoryObj.mode === selectedMode;
+      return isLevelMatch && isModeMatch;
+    });
+
+    if (filteredConcepts.length === 0) {
+      conceptContainer.innerHTML = "<p class='no-data'>조건에 맞는 마스터 개념 데이터가 존재하지 않습니다.</p>";
+    } else {
+      filteredConcepts.forEach(con => {
+        conceptContainer.innerHTML += `
+          <div class="concept-card" id="concept-${con.id}">
+            <div class="card-header">
+              <span class="freq-badge freq-${con.frequency}">빈도: ${con.frequency}</span>
+              <h4 class="concept-title">${con.title}</h4>
+            </div>
+            <p class="concept-def">${con.definition}</p>
+            <div class="concept-formula">${con.formula.replace(/\\n/g, '<br>')}</div>
+          </div>
+        `;
+      });
+    }
+    
+    // LaTeX 수식 실시간 동적 바인딩 및 재렌더링 강제 실행
+    if (window.MathJax && window.MathJax.typesetPromise) {
+      window.MathJax.typesetPromise();
+    }
+  }
+
+  // 3. 자격 요건 렌더링 연동
+  if (requirementContainer) {
+    requirementContainer.innerHTML = "";
+    const currentReq = qualificationRequirements.find(req => {
+      if (selectedLevel === "craftsman") return req.grade === "전기기능사";
+      if (selectedLevel === "industrial_engineer") return req.grade === "전기산업기사";
+      return req.grade === "전기기사";
+    });
+
+    if (currentReq) {
+      let detailsHtml = currentReq.details.map(d => `<li>${d}</li>`).join("");
+      requirementContainer.innerHTML = `
+        <div class="req-card">
+          <h5>${currentReq.icon} ${currentReq.grade} 응시 요건</h5>
+          <p class="summary-text"><strong>핵심 요약:</strong> ${currentReq.summary}</p>
+          <ul class="details-list">${detailsHtml}</ul>
+        </div>
+      `;
+    }
+  }
+
+  // 4. 모의고사 세팅 정보 렌더링 연동
+  if (mockSettingsContainer) {
+    mockSettingsContainer.innerHTML = "";
+    const mockKey = selectedLevel === "craftsman" ? "craftsman" : (selectedLevel === "industrial_engineer" ? "industrial" : "engineer");
+    const settings = mockExamSettings[mockKey];
+
+    if (settings) {
+      mockSettingsContainer.innerHTML = `
+        <div class="mock-settings-card">
+          <h5>📋 ${settings.name} 스펙</h5>
+          <ul>
+            <li><strong>시험 시간:</strong> ${settings.timeLimit / 60}분 (${settings.timeLimit}초)</li>
+            <li><strong>문항 수:</strong> ${settings.totalQuestions}문항</li>
+            <li><strong>합격 기준:</strong> ${settings.passingScore}점 이상 (과락 40점 미만 적용)</li>
+          </ul>
+        </div>
+      `;
+    }
+  }
+}
+
+// 특정 과목 카테고리를 클릭했을 때의 서브 트리 필터링 함수
+function filterBySpecificCategory(categoryId) {
+  const selectedLevel = document.getElementById("levelSelect") ? document.getElementById("levelSelect").value : "engineer";
+  const conceptContainer = document.getElementById("conceptList");
+  
+  if (!conceptContainer) return;
+  
+  conceptContainer.innerHTML = "";
+  const categoryFiltered = electricianData.concepts.filter(con => 
+    con.category === categoryId && con.levels.includes(selectedLevel)
+  );
+
+  if (categoryFiltered.length === 0) {
+    conceptContainer.innerHTML = "<p class='no-data'>해당 과목에 등록된 개념이 없습니다.</p>";
+  } else {
+    categoryFiltered.forEach(con => {
+      conceptContainer.innerHTML += `
+        <div class="concept-card" id="concept-${con.id}">
+          <div class="card-header">
+            <span class="freq-badge freq-${con.frequency}">빈도: ${con.frequency}</span>
+            <h4 class="concept-title">${con.title}</h4>
+          </div>
+          <p class="concept-def">${con.definition}</p>
+          <div class="concept-formula">${con.formula.replace(/\\n/g, '<br>')}</div>
+        </div>
+      `;
+    });
+  }
+
+  if (window.MathJax && window.MathJax.typesetPromise) {
+    window.MathJax.typesetPromise();
+  }
+}
+
+// 윈도우 DOM 로드 즉시 이벤트 및 초기 바인딩 실행 구동
+document.addEventListener("DOMContentLoaded", () => {
+  // HTML 셀렉터 박스가 존재하면 수동 체인지 핸들러 직접 연결
+  const levelSelect = document.getElementById("levelSelect");
+  const modeSelect = document.getElementById("modeSelect");
+  
+  if (levelSelect) levelSelect.addEventListener("change", renderPlatform);
+  if (modeSelect) modeSelect.addEventListener("change", renderPlatform);
+  
+  // 최초 1회 렌더링 구동
+  renderPlatform();
+});
