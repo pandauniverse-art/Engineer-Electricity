@@ -161,7 +161,8 @@ function renderConcepts() {
                     <h4 class="concept-title">${con.title}</h4>
                 </div>
                 <p class="concept-def">${con.definition}</p>
-                ${con.formula ? `<div class="formula-box" style="background:var(--primary-light); padding:4px 15px; border-radius:8px; text-align:center; margin-top:4px; font-size:1rem; --mjx-margin: 0 !important;"><style>.formula-box mjx-container{margin:0 !important; padding:0 !important;}</style>${con.formula.replace(/\\n/g, '<br/>')}</div>` : ''}
+                // renderConcepts() 내부의 formula-box 출력 한 줄을 아래 코드로 변경
+${con.formula ? `<div class="formula-box" style="background:var(--primary-light); padding:10px 20px; border-radius:8px; text-align:center; margin:10px auto; width:max-content; max-width:100%; display:block; font-size:1.05rem;">${con.formula.replace(/\\n/g, '<br/>')}</div>` : ''}
             </div>
         `;
     });
