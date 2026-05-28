@@ -127,22 +127,28 @@ body { background-color: var(--bg-main); color: var(--text-main); line-height: 1
 .freq-하 { background: #10b981; }
 .concept-def { font-size: 1rem; color: var(--text-sub); line-height: 1.5; }
 
-/* 🚨 수식 박스 공간 최적화 축소 적용 */
+/* 🚨 수식 박스 상하 컴팩트 다이어트 여백 처리 */
 .formula-box { 
-    background: var(--primary-light); 
-    color: var(--primary); 
-    padding: 6px 20px;      /* 상하 패딩을 기존 15px에서 6px로 대폭 축소 */
+    background: var(--primary-light) !important; 
+    color: var(--primary) !important; 
+    padding: 2px 15px !important;    /* 상하 패딩을 최소 단위인 2px로 극단 압축 */
     border-radius: var(--radius-md); 
-    font-size: 1rem;        /* 가독성 유지를 위한 1rem 미세 조정 */
-    margin-bottom: 10px; 
+    font-size: 0.95rem !important; 
+    margin-top: 4px !important;
+    margin-bottom: 4px !important; 
     overflow-x: auto; 
     white-space: nowrap; 
-    text-align: center;     /* 수식 중앙 정렬 고정 */
+    text-align: center;
+    display: block;
 }
 
-/* 🚨 MathJax 자체 엔진 생성 내부 마진 강제 제거 규칙 */
-.formula-box mjx-container[display="true"] {
-    margin: 4px 0 !important;
+/* 🚨 MathJax 고유 컨테이너 자동생성 여백 파괴 강제 룰 */
+.formula-box mjx-container,
+#conceptList mjx-container,
+.concept-card mjx-container {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: inline-block !important;
 }
 
 /* 퀴즈 객관식 버튼 스타일 */
@@ -165,7 +171,7 @@ body { background-color: var(--bg-main); color: var(--text-main); line-height: 1
     display: flex; 
     align-items: center; 
     text-align: left; 
-    padding: 10px 18px; /* 🚨 상하 패딩을 10px로 최적화 */
+    padding: 10px 18px; /* 상하 패딩 10px 최적화 유지 */
     border: 1px solid var(--border); 
     border-radius: 8px; 
     background: var(--bg-card); 
