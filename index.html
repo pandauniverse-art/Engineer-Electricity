@@ -24,6 +24,18 @@
             --transition: all 0.25s ease;
         }
 
+        body.dark-mode {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --primary: #6366f1;
+            --primary-light: #312e81;
+            --border: #334155;
+            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box !important; font-family: 'Pretendard', sans-serif; }
         body { background-color: var(--bg-main); color: var(--text-main); line-height: 1.6; transition: var(--transition); overflow-x: hidden; }
         .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; width: 100%; }
@@ -63,7 +75,7 @@
             color: var(--text-main);
         }
 
-        /* 🚨 [레이아웃 정상화 키] 사이드바와 메인 콘텐츠 사이의 터짐 방지 그리드 구조 명시 */
+        /* 2단 대시보드 레이아웃 배정 (터짐 방지 그리드 스펙 고수) */
         .main-layout { 
             display: grid; 
             grid-template-columns: 280px minmax(0, 1fr); 
@@ -106,7 +118,7 @@
         }
         .category-btn:hover { background: var(--border); transform: translateX(4px); }
 
-        /* 🚨 [그리드 레이아웃 교정] 가로 2열 바둑판 배열 및 1024px 이하 반응형 분기 */
+        /* 우측 메인 핵심 개념 카드 영역 (1024px 이하 자동 반응형 1열 종대 스위칭) */
         .content-area { 
             display: grid !important; 
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important; 
@@ -157,7 +169,7 @@
             word-break: break-all;
         }
 
-        /* 수식 박스 가로폭 고정 해제 및 내부 스크롤 안전 격리 */
+        /* 수식 박스 안전 격리 벨트 */
         .formula-box { 
             background: var(--primary-light) !important; 
             color: var(--primary) !important; 
@@ -174,6 +186,9 @@
             white-space: nowrap !important;
         }
 
+        .formula-box::-webkit-scrollbar { height: 5px; }
+        .formula-box::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+
         .formula-box mjx-container,
         #conceptList mjx-container,
         .concept-card mjx-container {
@@ -183,7 +198,7 @@
             max-width: 100% !important;
         }
 
-        /* CBT 모의고사 및 인터랙티브 컨테이너 가득 채우기 */
+        /* CBT 모의고사 박스 */
         .mock-paper-box {
             background: var(--bg-card);
             padding: 35px;
@@ -376,7 +391,7 @@ const electricianData = {
     { id: 414, category: 'machine', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '단상 유도전동기 기동토크', definition: '스스로 돌지 못해 보조기동 필요.', formula: '$$ \\text{반발} > \\text{콘덴서} > \\text{분상} > \\text{셰이딩} $$', frequency: '상' },
     { id: 415, category: 'machine', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '정류 회로 (맥동률)', definition: '직류 변환 시 리플 정도.', formula: '$$ \\text{단상 반파 121\\%, 단상 전파 48\\%} $$', frequency: '중' },
     { id: 416, category: 'machine', levels: ['industrial_engineer', 'engineer'], title: '변압기 전압변동률', definition: '무부하와 정격 부하 시 전압 차이.', formula: '$$ \\epsilon = p \\cos\\theta + q \\sin\\theta $$', frequency: '상' },
-    { id: 417, category: 'machine', levels: ['industrial_engineer', 'engineer'], title: '병렬운전 조건 (동기기)', definition: '순환전류 방지 조건.', formula: '$$ \\text{기전력의 크기, 위상, 주파수, 파형 일치} $$', frequency: '상' },
+    { id: 717, category: 'machine', levels: ['industrial_engineer', 'engineer'], title: '병렬운전 조건 (동기기)', definition: '순환전류 방지 조건.', formula: '$$ \\text{기전력의 크기, 위상, 주파수, 파형 일치} $$', frequency: '상' },
     { id: 418, category: 'machine', levels: ['industrial_engineer', 'engineer'], title: '사이리스터 (SCR)', definition: '위상 제어용 반도체.', formula: '$$ E_d = \\frac{\\sqrt{2} E}{\\pi} \\frac{1+\\cos\\alpha}{2} $$', frequency: '중' },
     { id: 419, category: 'machine', levels: ['industrial_engineer', 'engineer'], title: '난조 (Hunting)', definition: '동기속도 진동 현상.', formula: '$$ \\text{대책: 제동권선 (Amortisseur Winding) 설치} $$', frequency: '상' },
     { id: 420, category: 'machine', levels: ['craftsman', 'industrial_engineer', 'engineer'], title: '속도 제어 (직류기)', definition: '회전수 조절법.', formula: '$$ N = \\frac{V - I_a R_a}{K \\Phi} $$ (전압제어가 가장 광범위)', frequency: '중' },
@@ -527,15 +542,6 @@ const mockExamSettings = {
   engineer: { name: "전기기사 필기 모의고사", timeLimit: 150 * 60, totalQuestions: 100, passingScore: 60, subjects: ['electromagnetics', 'power', 'machine', 'circuit', 'control', 'regulation'] }
 };
 
-// ==========================================================================
-// 비즈니스 로직 및 동적 UI 바인딩 코어 엔진
-// ==========================================================================
-
-<script>
-// ==========================================================================
-// 비즈니스 로직 및 동적 UI 바인딩 코어 엔진
-// ==========================================================================
-
 let selectedLevel = 'engineer';
 let selectedCategory = 'all';
 let currentMode = 'written'; 
@@ -568,7 +574,7 @@ function initApp() {
             const foundationFrame = document.getElementById("foundationFrame");
             const sidebarSection = document.getElementById("sidebarSection");
 
-            // 🚨 전기기초 모드 선택 시 인터랙션 모듈 전용 스위칭 인터록
+            // 전기기초 모드 선택 시 인터랙션 모듈 전용 스위칭 인터록
             if (selectedLevel === 'foundation') {
                 if (sidebarSection) sidebarSection.style.display = 'none';
                 if (cGrid) cGrid.style.setProperty('display', 'none', 'important');
@@ -576,7 +582,6 @@ function initApp() {
                 
                 if (foundationContainer && foundationFrame) {
                     foundationContainer.style.display = 'block';
-                    // GitHub Pages 호환용 상대 경로 라우팅 적용
                     foundationFrame.src = "./foundation/list.html"; 
                 }
             } else {
@@ -714,7 +719,7 @@ function renderConcepts() {
     conceptContainer.innerHTML = "";
     const filteredConcepts = electricianData.concepts.filter(con => {
         const isLevelMatch = con.levels.includes(selectedLevel);
-        const categoryObj = electricianData.categories.filter(c => c.id === con.category)[0];
+        const categoryObj = electricianData.categories.find(c => c.id === con.category);
         const isModeMatch = categoryObj && categoryObj.mode === currentMode;
         const isCategoryMatch = selectedCategory === 'all' || con.category === selectedCategory;
         return isLevelMatch && isModeMatch && isCategoryMatch;
