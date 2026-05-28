@@ -18,7 +18,9 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
 body { background-color: var(--bg-main); color: var(--text-main); line-height: 1.6; transition: var(--transition); overflow-x: hidden; }
-.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; width: 100%; }
+
+/* 컨테이너 너비 엄격 제한 */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; width: 100%; box-sizing: border-box; }
 
 /* 헤더 상단바 디자인 스타일 */
 .header { background: var(--bg-card); padding: 15px 0; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); }
@@ -26,7 +28,7 @@ body { background-color: var(--bg-main); color: var(--text-main); line-height: 1
 .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.2rem; color: var(--text-main); }
 .logo-icon { width: 36px; height: 36px; background: var(--primary); color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
 
-.main-container { padding: 30px 0 80px; width: 100%; }
+.main-container { padding: 30px 0 80px; width: 100%; box-sizing: border-box; }
 
 /* 제어 패널 디자인 */
 .control-panel { 
@@ -42,19 +44,20 @@ body { background-color: var(--bg-main); color: var(--text-main); line-height: 1
     flex-wrap: wrap;
     width: 100%;
 }
-.select-group { display: flex; flex-direction: column; gap: 8px; }
+.select-group { display: flex; flex-direction: column; gap: 8px; width: max-content; max-width: 100%; }
 .select-group label { font-weight: bold; font-size: 0.9rem; }
 .select-group select { 
     padding: 10px 15px; 
     border-radius: 6px; 
     border: 1px solid var(--border); 
     font-size: 1rem; 
+    width: 100%;
     min-width: 200px;
     background-color: var(--bg-card);
     color: var(--text-main);
 }
 
-/* 🚨 [수정 1] 대시보드 2단 레이아웃 그리드 설정 (minmax 0 추가로 영역 뚫림 방지) */
+/* 🚨 1. 전체 레이아웃 뚫림 방지 (minmax 0 적용) */
 .main-layout { 
     display: grid; 
     grid-template-columns: 320px minmax(0, 1fr); 
@@ -66,13 +69,14 @@ body { background-color: var(--bg-main); color: var(--text-main); line-height: 1
 }
 
 /* 좌측 사이드바 구조 */
-.sidebar { display: flex; flex-direction: column; gap: 20px; }
+.sidebar { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
 .widget-card { 
     background: var(--bg-card); 
     padding: 20px; 
     border-radius: 8px; 
     border: 1px solid var(--border);
     box-shadow: var(--shadow-sm);
+    width: 100%;
 }
 .widget-card h5 { margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; border-bottom: 2px solid var(--primary); padding-bottom: 6px; color: var(--primary); }
 
@@ -92,19 +96,22 @@ body { background-color: var(--bg-main); color: var(--text-main); line-height: 1
     display: flex;
     align-items: center;
     gap: 10px;
+    width: 100%;
 }
 .category-btn:hover { background: var(--border); transform: translateX(4px); }
 
-/* 🚨 [수정 2] 창 크기에 따라 자동으로 1열 ↔ 2열로 변환되는 반응형 그리드 도입 */
+/* 🚨 2. 메인 콘텐츠 2열 자동 배열 (가장 핵심적인 반응형 로직) */
 .content-area { 
     display: grid !important; 
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important; 
+    /* min(100%, 300px)를 통해 화면이 300px보다 작아져도 삐져나가지 않고 100%로 축소됨 */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)) !important; 
     gap: 20px !important; 
     align-content: start;
     width: 100%;
+    min-width: 0 !important; /* 브라우저 기본 스펙 무력화 */
 }
 
-/* 🚨 [수정 3] 공식 개념 카드 레이아웃 (내부 콘텐츠가 카드를 밀어내지 못하게 차단) */
+/* 🚨 3. 카드 레이아웃 강제 격리 */
 .concept-card { 
     background: var(--bg-card); 
     padding: 22px;
@@ -115,18 +122,22 @@ body { background-color: var(--bg-main); color: var(--text-main); line-height: 1
     flex-direction: column;
     gap: 12px;
     height: max-content;
-    min-width: 0; /* 부모 너비 초과 방지 마스터 키 */
-    overflow: hidden;
+    
+    /* 카드 내부 요소가 밖으로 나가지 못하게 절대 봉쇄 */
+    min-width: 0 !important; 
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important; 
 }
+
 .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; flex-wrap: wrap; gap: 10px; }
-.concept-title { font-size: 1.15rem; font-weight: 700; color: var(--text-main); word-break: keep-all; }
-.freq-badge { font-size: 0.8rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; color: white; white-space: nowrap; }
+.concept-title { font-size: 1.15rem; font-weight: 700; color: var(--text-main); word-break: keep-all; overflow-wrap: break-word; }
+.freq-badge { font-size: 0.8rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; color: white; white-space: nowrap; flex-shrink: 0; }
 .freq-상 { background: #ef4444; }
 .freq-중 { background: #f59e0b; }
 .freq-하 { background: #10b981; }
-.concept-def { font-size: 0.95rem; color: var(--text-sub); line-height: 1.5; word-break: keep-all; }
+.concept-def { font-size: 0.95rem; color: var(--text-sub); line-height: 1.5; word-break: keep-all; overflow-wrap: break-word; }
 
-/* 카드 내부 텍스트 리스트 설정 */
 .concept-bullets {
     padding-left: 18px;
     margin: 4px 0;
@@ -139,29 +150,40 @@ body { background-color: var(--bg-main); color: var(--text-main); line-height: 1
     color: var(--text-main);
     list-style-type: square;
     word-break: keep-all;
+    overflow-wrap: break-word;
 }
 
-/* 수식 박스 공간 최적화 (가로 스크롤 허용하여 카드 모양 유지) */
+/* 🚨 4. 수식 박스 가로 스크롤 완벽 대응 */
 .formula-box { 
     background: var(--primary-light) !important; 
     color: var(--primary) !important; 
-    padding: 12px 20px !important;    
+    padding: 12px 15px !important;    
     border-radius: var(--radius-md); 
     font-size: 1rem !important; 
     width: 100% !important;   
     max-width: 100% !important;      
     margin: 5px auto 0 !important;    
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    overflow-x: auto; /* 수식이 길면 박스 안에서만 스크롤되도록 설정 */
+    
+    /* Flex 대신 Block으로 전환하여 강제 스크롤 유도 */
+    display: block !important;
+    text-align: center !important;
+    overflow-x: auto !important; 
+    overflow-y: hidden !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
 }
 
-/* MathJax 마진 패딩 제로 마스터 상쇄 처리 */
+/* 수식 박스 커스텀 스크롤바 (디자인을 해치지 않게 얇게 처리) */
+.formula-box::-webkit-scrollbar { height: 6px; }
+.formula-box::-webkit-scrollbar-track { background: transparent; }
+.formula-box::-webkit-scrollbar-thumb { background: #c7d2fe; border-radius: 10px; }
+.formula-box::-webkit-scrollbar-thumb:hover { background: #818cf8; }
+
+/* MathJax 자체 가로 폭 리셋 */
 .formula-box mjx-container,
 #conceptList mjx-container,
 .concept-card mjx-container {
-    margin: 0 !important;
+    margin: 0 auto !important;
     padding: 0 !important;
     display: inline-block !important;
     max-width: 100% !important;
@@ -174,8 +196,9 @@ body { background-color: var(--bg-main); color: var(--text-main); line-height: 1
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
     border: 1px solid var(--border);
-    grid-column: 1 / -1; /* 모의고사 작동 시 화면 전체 확장 대응 */
+    grid-column: 1 / -1; 
     width: 100%;
+    box-sizing: border-box;
 }
 
 .mock-opt-btn {
@@ -191,6 +214,7 @@ body { background-color: var(--bg-main); color: var(--text-main); line-height: 1
     font-weight: 500; 
     cursor: pointer; 
     transition: all 0.15s ease;
+    word-break: keep-all;
 }
 .mock-opt-btn:hover {
     background: var(--primary-light);
