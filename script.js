@@ -1,7 +1,3 @@
-// ==========================================================================
-// 전기 마스터 스마트 학습 플랫폼 - 핵심 비즈니스 로직 제어 엔진 (2열 확장판)
-// ==========================================================================
-
 let selectedLevel = 'engineer';
 let selectedCategory = 'all';
 let currentMode = 'written'; 
@@ -54,6 +50,7 @@ function initApp() {
                     cGrid.style.display = 'none';
                     cGrid.style.setProperty('display', 'none', 'important');
                 }
+                
                 if (mockContainer) {
                     mockContainer.style.display = 'block';
                     initMockExamCore(selectedLevel);
@@ -66,7 +63,7 @@ function initApp() {
                 }
                 if (sidebarSection) sidebarSection.style.display = 'flex';
                 if (mainLayoutStructure) {
-                    mainLayoutStructure.style.gridTemplateColumns = window.innerWidth <= 992 ? '1fr' : '320px 1fr';
+                    mainLayoutStructure.style.gridTemplateColumns = window.innerWidth <= 768 ? '1fr' : '320px 1fr';
                 }
                 
                 selectedCategory = 'all';
@@ -143,7 +140,6 @@ function renderTabs() {
     }
 }
 
-// 우측 핵심 개념 카드 출력 (2열 스위칭 및 내부 리스트 로직 탑재)
 function renderConcepts() {
     const conceptContainer = document.getElementById("conceptList");
     if (!conceptContainer) return;
@@ -163,15 +159,14 @@ function renderConcepts() {
     }
 
     filteredConcepts.forEach(con => {
-        // 데이터 무결성을 위해 하위 핵심 리스트가 정의되지 않았을 경우에 대비한 기본 스코프 배열 생성
-        // 공부할 때 필수적인 유의사항 및 암기 단락 리스트를 뼈대로 채워넣습니다.
+        // 카드 내부에 노출할 핵심 요약 스코프 리스트 배열 선언
         const summaryBullets = [
-            "기출문제 출제 빈도가 매우 높은 중요 핵심 키워드",
-            "단위 및 계산기 수식 대입 조건 절대 주의",
-            "실기 주관식 단답형 문항 단골 변형 출제 스코프"
+            "국가기술검정 필기/실기 시험 단골 출제 키워드 스코프",
+            "공학용 계산기 수식 인자값 대입 및 단위 환산 절대 주의",
+            "주관식 단답형 정답 마킹을 위한 필수 암기 핵심 마일스톤"
         ];
 
-        /* 🚨 레이아웃 대수정: 카테고리와 공식 사이에 핵심 리스트 <ul> 구조를 동적 주입 */
+        /* 🚨 [구조 대전환 반영] 카테고리 정보와 수식 공식 박스 사이에 핵심 요약 리스트 <ul> 태그 동적 삽입 */
         conceptContainer.innerHTML += `
             <div class="concept-card" id="concept-${con.id}">
                 <div class="card-header">
@@ -243,7 +238,7 @@ function renderMockQuestionScreen() {
     const numberIcons = ['①', '②', '③', '④'];
 
     const min = Math.floor(mockTimeLeft / 60);
-    const sec = Math.floor(mockTimeLeft % 60);
+    const sec = mockTimeLeft % 60;
 
     container.innerHTML = `
         <div class="mock-paper-box">
@@ -308,6 +303,6 @@ function renderMockResultScreen() {
 window.addEventListener('resize', () => {
     const mainLayoutStructure = document.getElementById("mainLayoutStructure");
     if (mainLayoutStructure && currentMode !== 'mockexam') {
-        mainLayoutStructure.style.gridTemplateColumns = window.innerWidth <= 992 ? '1fr' : '320px 1fr';
+        mainLayoutStructure.style.gridTemplateColumns = window.innerWidth <= 768 ? '1fr' : '320px 1fr';
     }
 });
