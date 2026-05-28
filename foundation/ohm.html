@@ -121,28 +121,28 @@
         /* 🏃 3. 전류 흐름 파티클 (glowing dot)
            레이아웃 배치 연산을 피하고 transform 원형 궤적 운동으로 렉 제로화 */
         .current-particle {
-            position: absolute;
-            width: 8px;
-            height: 8px;
-            background: #f59e0b;
-            border-radius: 50%;
-            /* 박스 섀도우 최소화하되 빛나는 느낌(Glow) 유지 */
-            box-shadow: 0 0 8px #f59e0b; 
-            z-index: 2;
-            animation: circuitFlow linear infinite;
-            /* 자바스크립트에서 실시간 주입할 CSS 변수 설정 */
-            animation-duration: var(--flow-speed, 2s); 
-            will-change: transform;
-        }
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #f59e0b;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #f59e0b;
+    z-index: 4;
+    animation: circuitFlow linear infinite;
+    animation-duration: var(--flow-speed, 2.8s);
+    will-change: left, top;
+}
 
         /* 사각형 회로 트랙을 부드럽게 순환하는 하드웨어 가속 키프레임 */
-        @keyframes circuitFlow {
-            0%   { transform: translate(15vw, 114px); }  /* 배터리 출발 (위로) */
-            25%  { transform: translate(15vw, 74px); }   /* 상단 좌측 코너 */
-            50%  { transform: translate(35vw, 74px); }   /* 상단 우측 코너 (전구 진입) */
-            75%  { transform: translate(35vw, 154px); }  /* 하단 우측 코너 */
-            100% { transform: translate(15vw, 154px); }  /* 하단 좌측 코너 복귀 */
-        }
+       @keyframes circuitFlow {
+    0%   { left: 0%;   top: 100%; opacity: 0; }
+    5%   { opacity: 1; }
+    25%  { left: 0%;   top: 0%; }
+    50%  { left: 100%; top: 0%; }
+    75%  { left: 100%; top: 100%; }
+    95%  { opacity: 1; }
+    100% { left: 0%;   top: 100%; opacity: 0; }
+}
 
         /* 🚨 4. 정보 및 컨트롤 영역 (30% 비중) */
         .control-section {
@@ -281,6 +281,7 @@
     const bulb = document.getElementById('bulb');
     const resistor = document.getElementById('resistor');
     const stage = document.getElementById('stage');
+    const circuitLoop = document.querySelector('.circuit-loop');
 
     // 🏃 고성능 물리 흐름 동기화 엔진
     function processCircuitDynamics() {
@@ -335,12 +336,14 @@ const alpha = Math.min(0.25 + (visualCurrent * 0.25), 0.85);
             dot.className = 'current-particle';
             // 고정 격차 딜레이 분산으로 기차처럼 꼬리를 물고 달리도록 유도
             dot.style.animationDelay = `${k * (speedDuration / maxDots)}s`;
-            stage.appendChild(dot);
+            circuitLoop.appendChild(dot);
         }
     }
 
     // 창 크기 대응 동적 가로 보정용 키프레임 인젝션 시동
     function updateResponsiveKeyframes() {
+    processCircuitDynamics();
+}
     const stageRect = stage.getBoundingClientRect();
 
     const loopLeft = stageRect.width * 0.15;
