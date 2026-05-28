@@ -531,6 +531,11 @@ const mockExamSettings = {
 // 비즈니스 로직 및 동적 UI 바인딩 코어 엔진
 // ==========================================================================
 
+<script>
+// ==========================================================================
+// 비즈니스 로직 및 동적 UI 바인딩 코어 엔진
+// ==========================================================================
+
 let selectedLevel = 'engineer';
 let selectedCategory = 'all';
 let currentMode = 'written'; 
@@ -563,7 +568,7 @@ function initApp() {
             const foundationFrame = document.getElementById("foundationFrame");
             const sidebarSection = document.getElementById("sidebarSection");
 
-            // 전기기초 모드 선택 시 인터랙션 모듈 전용 스위칭 인터록
+            // 🚨 전기기초 모드 선택 시 인터랙션 모듈 전용 스위칭 인터록
             if (selectedLevel === 'foundation') {
                 if (sidebarSection) sidebarSection.style.display = 'none';
                 if (cGrid) cGrid.style.setProperty('display', 'none', 'important');
@@ -571,6 +576,7 @@ function initApp() {
                 
                 if (foundationContainer && foundationFrame) {
                     foundationContainer.style.display = 'block';
+                    // GitHub Pages 호환용 상대 경로 라우팅 적용
                     foundationFrame.src = "./foundation/list.html"; 
                 }
             } else {
