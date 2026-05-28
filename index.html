@@ -36,9 +36,9 @@
             --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.4);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
-        body { background-color: var(--bg-main); color: var(--text-main); line-height: 1.6; transition: var(--transition); }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        * { margin: 0; padding: 0; box-sizing: border-box !important; font-family: 'Pretendard', sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-main); line-height: 1.6; transition: var(--transition); overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; width: 100%; }
 
         /* 헤더 */
         .header { background: var(--bg-card); padding: 15px 0; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); }
@@ -46,7 +46,7 @@
         .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.4rem; color: var(--text-main); }
         .logo-icon { width: 36px; height: 36px; background: var(--primary); color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
 
-        .main-container { padding: 30px 0 80px; }
+        .main-container { padding: 30px 0 80px; width: 100%; }
 
         /* 제어 패널 디자인 */
         .control-panel { 
@@ -60,37 +60,41 @@
             gap: 20px; 
             justify-content: center;
             flex-wrap: wrap;
+            width: 100%;
         }
-        .select-group { display: flex; flex-direction: column; gap: 8px; }
+        .select-group { display: flex; flex-direction: column; gap: 8px; width: max-content; max-width: 100%; }
         .select-group label { font-weight: bold; font-size: 0.9rem; }
         .select-group select { 
             padding: 10px 15px; 
             border-radius: 6px; 
             border: 1px solid var(--border); 
             font-size: 1rem; 
+            width: 100%;
             min-width: 200px;
             background-color: var(--bg-card);
             color: var(--text-main);
         }
 
-        /* 2단 대시보드 레이아웃 배정 */
+        /* 🚨 [레이아웃 보정] 사이드바와 메인 콘텐츠 사이의 터짐 방지 메커니즘 */
         .main-layout { 
             display: grid; 
-            grid-template-columns: 320px 1fr; 
+            grid-template-columns: 280px minmax(0, 1fr); 
             gap: 25px; 
+            width: 100%;
         }
         @media (max-width: 768px) {
-            .main-layout { grid-template-columns: 1fr; }
+            .main-layout { grid-template-columns: minmax(0, 1fr); }
         }
 
         /* 사이드바 배치 */
-        .sidebar { display: flex; flex-direction: column; gap: 20px; }
+        .sidebar { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
         .widget-card { 
             background: var(--bg-card); 
             padding: 20px; 
             border-radius: 8px; 
             border: 1px solid var(--border);
             box-shadow: var(--shadow-sm);
+            width: 100%;
         }
         .widget-card h5 { margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; border-bottom: 2px solid var(--primary); padding-bottom: 6px; color: var(--primary); }
 
@@ -110,18 +114,21 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            width: 100%;
         }
         .category-btn:hover { background: var(--border); transform: translateX(4px); }
 
-        /* 🚨 [핵심 수정] 우측 메인 영역을 가로 2열 바둑판 구조로 무조건 쪼갬 */
+        /* 🚨 [그리드 터짐 해결] 카드 영역 가로 넓이 제한 설정 및 auto-fit 유연화 */
         .content-area { 
             display: grid !important; 
-            grid-template-columns: repeat(2, 1fr) !important; 
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important; 
             gap: 20px !important; 
             align-content: start;
+            width: 100%;
+            min-width: 0 !important;
         }
-        @media (max-width: 992px) {
-            .content-area { grid-template-columns: 1fr !important; }
+        @media (max-width: 1024px) {
+            .content-area { grid-template-columns: minmax(0, 1fr) !important; }
         }
 
         /* 오른쪽 메인 핵심 개념 카드 구성 스펙 */
@@ -135,14 +142,18 @@
             flex-direction: column;
             gap: 12px;
             height: max-content;
+            min-width: 0 !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            overflow: hidden !important;
         }
-        .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-        .concept-title { font-size: 1.25rem; font-weight: 700; color: var(--text-main); }
-        .freq-badge { font-size: 0.8rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; color: white; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+        .concept-title { font-size: 1.15rem; font-weight: 700; color: var(--text-main); word-break: break-all; }
+        .freq-badge { font-size: 0.8rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; color: white; white-space: nowrap; flex-shrink: 0; }
         .freq-상 { background: #ef4444; }
         .freq-중 { background: #f59e0b; }
         .freq-하 { background: #10b981; }
-        .concept-def { font-size: 1rem; color: var(--text-sub); line-height: 1.5; }
+        .concept-def { font-size: 0.95rem; color: var(--text-sub); line-height: 1.5; word-break: break-all; }
 
         /* 카테고리와 공식 사이에 표기될 핵심 리스트 디자인 규격 */
         .concept-bullets {
@@ -153,35 +164,37 @@
             gap: 6px;
         }
         .concept-bullets li {
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             color: var(--text-main);
             list-style-type: square;
-            word-break: keep-all;
+            word-break: break-all;
         }
 
-        /* 수식 박스 공간 최적화 및 가로폭 콤팩트 중앙 정렬 */
+        /* 수식 박스 공간 최적화 및 내부 격리 차단막 설정 */
         .formula-box { 
             background: var(--primary-light) !important; 
             color: var(--primary) !important; 
-            padding: 12px 20px !important;    
+            padding: 15px 10px !important;    
             border-radius: var(--radius-md); 
-            font-size: 1.05rem !important; 
+            font-size: 1rem !important; 
             width: 100% !important;   
             max-width: 100% !important;      
-            margin: 10px auto !important;    
-            display: flex !important;
-            justify-content: center !important;
-            align-items: center !important;
-            overflow-x: auto;
+            min-width: 0 !important;
+            margin: 5px auto 0 !important;    
+            display: block !important;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            white-space: nowrap !important;
         }
 
         /* MathJax 자체 가로/세로 엔진 마진 제로 리셋 */
         .formula-box mjx-container,
         #conceptList mjx-container,
         .concept-card mjx-container {
-            margin: 0 !important;
+            margin: 0 auto !important;
             padding: 0 !important;
             display: inline-block !important;
+            max-width: 100% !important;
         }
 
         /* CBT 모의고사 실전 모드 스펙 스타일 */
@@ -191,21 +204,24 @@
             border-radius: var(--radius-lg);
             border: 1px solid var(--border);
             box-shadow: var(--shadow-md);
-            grid-column: span 2; /* 그리드에서 모의고사는 가로 전체 차지 */
+            grid-column: 1 / -1;
+            width: 100%;
+            min-width: 0;
         }
         .mock-opt-btn {
             width: 100%;
             display: flex;
             align-items: center;
             text-align: left;
-            padding: 15px 20px;
+            padding: 14px 18px;
             border: 1px solid var(--border);
             border-radius: 8px;
             background: var(--bg-card);
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.15s ease;
+            word-break: break-all;
         }
         .mock-opt-btn:hover {
             background: var(--primary-light);
@@ -213,8 +229,8 @@
         }
 
         .details-list { padding-left: 20px; margin: 8px 0; font-size: 0.9rem; line-height: 1.6; color: var(--text-sub); }
-        .details-list li { margin-bottom: 6px; }
-        .no-data { grid-column: span 2; text-align: center; color: var(--text-sub); padding: 40px; font-weight: 500; font-style: italic; }
+        .details-list li { margin-bottom: 6px; word-break: break-all; }
+        .no-data { grid-column: 1 / -1; text-align: center; color: var(--text-sub); padding: 40px; font-weight: 500; font-style: italic; }
     </style>
 </head>
 <body>
@@ -233,6 +249,7 @@
         <div class="select-group">
             <label for="levelSelect">목표 자격증 선택</label>
             <select id="levelSelect">
+                <option value="foundation">🌱 시각적 전기기초 (인터랙션)</option>
                 <option value="craftsman">전기기능사</option>
                 <option value="industrial_engineer">전기산업기사</option>
                 <option value="engineer" selected>전기기사</option>
@@ -262,6 +279,10 @@
 
         <div class="content-area" id="conceptList"></div>
         <div class="content-area" id="mockExamContainer" style="display: none;"></div>
+        
+        <div class="content-area" id="foundationContainer" style="display: none; grid-column: 1 / -1; width: 100%; min-width: 0;">
+            <iframe id="foundationFrame" src="" style="width: 100%; border: none; min-height: 720px; overflow: hidden;" scrolling="no"></iframe>
+        </div>
 
     </div>
 </div>
@@ -554,12 +575,38 @@ function initApp() {
         levelSelect.addEventListener("change", (e) => {
             selectedLevel = e.target.value;
             renderSidebarRequirements();
-            if (currentMode === 'mockexam') {
-                initMockExamCore(selectedLevel);
+            
+            const cGrid = document.getElementById("conceptList");
+            const mockContainer = document.getElementById("mockExamContainer");
+            const foundationContainer = document.getElementById("foundationContainer");
+            const foundationFrame = document.getElementById("foundationFrame");
+            const sidebarSection = document.getElementById("sidebarSection");
+
+            // 🚨 전기기초 모드 스위칭 동적 인터록 분기 제어
+            if (selectedLevel === 'foundation') {
+                if (sidebarSection) sidebarSection.style.display = 'none';
+                if (cGrid) cGrid.style.setProperty('display', 'none', 'important');
+                if (mockContainer) mockContainer.style.display = 'none';
+                
+                if (foundationContainer && foundationFrame) {
+                    foundationContainer.style.display = 'block';
+                    foundationFrame.src = "./foundation/ohm.html"; 
+                }
             } else {
-                selectedCategory = 'all';
-                renderTabs();
-                renderConcepts();
+                if (foundationContainer) foundationContainer.style.display = 'none';
+                if (sidebarSection) sidebarSection.style.display = 'flex';
+                if (cGrid) {
+                    cGrid.style.display = 'grid';
+                    cGrid.style.setProperty('display', 'grid', 'important');
+                }
+                
+                if (currentMode === 'mockexam') {
+                    initMockExamCore(selectedLevel);
+                } else {
+                    selectedCategory = 'all';
+                    renderTabs();
+                    renderConcepts();
+                }
             }
         });
     }
@@ -573,6 +620,9 @@ function initApp() {
             const mockContainer = document.getElementById("mockExamContainer");
             const sidebarSection = document.getElementById("sidebarSection");
             const mainLayoutStructure = document.getElementById("mainLayoutStructure");
+            const foundationContainer = document.getElementById("foundationContainer");
+
+            if (selectedLevel === 'foundation') return; // 전기기초 상태일 때는 모드 변경 연동 패스
 
             if (currentMode === 'mockexam') {
                 if (sidebarSection) sidebarSection.style.display = 'none';
@@ -593,7 +643,7 @@ function initApp() {
                 }
                 if (sidebarSection) sidebarSection.style.display = 'flex';
                 if (mainLayoutStructure) {
-                    mainLayoutStructure.style.gridTemplateColumns = window.innerWidth <= 768 ? '1fr' : '320px 1fr';
+                    mainLayoutStructure.style.gridTemplateColumns = window.innerWidth <= 768 ? '1fr' : '280px 1fr';
                 }
                 
                 selectedCategory = 'all';
@@ -830,8 +880,8 @@ function renderMockResultScreen() {
 
 window.addEventListener('resize', () => {
     const mainLayoutStructure = document.getElementById("mainLayoutStructure");
-    if (mainLayoutStructure && currentMode !== 'mockexam') {
-        mainLayoutStructure.style.gridTemplateColumns = window.innerWidth <= 768 ? '1fr' : '320px 1fr';
+    if (mainLayoutStructure && currentMode !== 'mockexam' && selectedLevel !== 'foundation') {
+        mainLayoutStructure.style.gridTemplateColumns = window.innerWidth <= 768 ? '1fr' : '280px 1fr';
     }
 });
 </script>
