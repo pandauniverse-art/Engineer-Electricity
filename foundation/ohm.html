@@ -237,15 +237,15 @@
 
         <div class="mini-display">
             <div class="data-row">
-                <span>압력 (전압 V)</span>
+                <span>전압 V</span>
                 <span><strong id="vText">5.0</strong> V</span>
             </div>
             <div class="data-row">
-                <span>방해 (저항 R)</span>
+               <span>저항 R</span>
                 <span><strong id="rText">10</strong> Ω</span>
             </div>
             <div class="data-row" style="border-top: 1px dashed #1f293d; padding-top: 8px; margin-top: 4px;">
-                <span>흐름 세기 (전류 I)</span>
+                <span>전류 I = V ÷ R</span>
                 <span><strong id="iText" class="highlight-i">0.50</strong> A</span>
             </div>
         </div>
@@ -264,7 +264,7 @@
                     <span style="color:#94a3b8;">🚧 저항 조절</span>
                     <span style="color:#94a3b8;" id="rVal">10 Ω</span>
                 </div>
-                <input type="range" id="rRange" min="1" max="50" step="1" value="10">
+                <input type="range" id="rRange" min="2" max="50" step="1" value="10">
             </div>
         </div>
     </div>
@@ -299,14 +299,15 @@
         resistor.innerText = `🚧 ${r}Ω 저항`;
 
         // 2. 💡 전구 반응식 고도화 (Scale 확대 및 Glow 발산 동시 유기 인터록)
-        const bulbScale = Math.min(0.9 + (i * 0.4), 1.4); // 전류에 따라 전구 크기 변화
-        const glowRadius = Math.min(i * 90, 150); // 빛번짐 반경 계산
-        const alpha = Math.min(0.1 + (i * 0.9), 1);
+       const visualCurrent = Math.min(i, 2.5);
+const bulbScale = 1 + (visualCurrent * 0.08);
+const glowRadius = 10 + (visualCurrent * 14);
+const alpha = Math.min(0.25 + (visualCurrent * 0.25), 0.85);
 
         if (i > 0.05) {
             bulb.style.background = `rgba(245, 158, 11, ${alpha})`;
             bulb.style.transform = `translate(50%, -50%) scale(${bulbScale})`;
-            bulb.style.boxShadow = `0 0 ${glowRadius}px ${glowRadius/3}px rgba(245, 158, 11, 0.7)`;
+           bulb.style.boxShadow = `0 0 ${glowRadius}px rgba(245, 158, 11, ${alpha})`;
         } else {
             bulb.style.background = '#1e293b';
             bulb.style.transform = `translate(50%, -50%) scale(1)`;
@@ -319,11 +320,11 @@
 
         // 4. 🏃 도트 파티클 속도 연동 (CSS Variable을 이용해 리페인팅 비용을 절약)
         // 전류가 강할수록 한 바퀴 도는 시간(duration)이 극도로 단축됨
-        const speedDuration = Math.max(0.2, 4.0 - (i * 7.5)); 
+      const speedDuration = Math.max(1.2, 4.2 - (Math.min(i, 2.5) * 0.8));
         stage.style.setProperty('--flow-speed', `${speedDuration}s`);
 
         // 입자 갯수 조율 (렉 방지 최대 8개 한계선 설정)
-        const maxDots = Math.min(Math.ceil(i * 12), 8);
+       const maxDots = Math.max(2, Math.min(Math.ceil(i * 3), 5));
         
         // 기존 입자 일괄 청소
         document.querySelectorAll('.current-particle').forEach(el => el.remove());
