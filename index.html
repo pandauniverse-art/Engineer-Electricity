@@ -24,18 +24,6 @@
             --transition: all 0.25s ease;
         }
 
-        body.dark-mode {
-            --bg-main: #0f172a;
-            --bg-card: #1e293b;
-            --text-main: #f8fafc;
-            --text-sub: #94a3b8;
-            --primary: #6366f1;
-            --primary-light: #312e81;
-            --border: #334155;
-            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
-            --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.4);
-        }
-
         * { margin: 0; padding: 0; box-sizing: border-box !important; font-family: 'Pretendard', sans-serif; }
         body { background-color: var(--bg-main); color: var(--text-main); line-height: 1.6; transition: var(--transition); overflow-x: hidden; }
         .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; width: 100%; }
@@ -75,7 +63,7 @@
             color: var(--text-main);
         }
 
-        /* 🚨 [레이아웃 보정] 사이드바와 메인 콘텐츠 사이의 터짐 방지 메커니즘 */
+        /* 🚨 [레이아웃 정상화 키] 사이드바와 메인 콘텐츠 사이의 터짐 방지 그리드 구조 명시 */
         .main-layout { 
             display: grid; 
             grid-template-columns: 280px minmax(0, 1fr); 
@@ -118,7 +106,7 @@
         }
         .category-btn:hover { background: var(--border); transform: translateX(4px); }
 
-        /* 🚨 [그리드 터짐 해결] 카드 영역 가로 넓이 제한 설정 및 auto-fit 유연화 */
+        /* 🚨 [그리드 레이아웃 교정] 가로 2열 바둑판 배열 및 1024px 이하 반응형 분기 */
         .content-area { 
             display: grid !important; 
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important; 
@@ -131,7 +119,7 @@
             .content-area { grid-template-columns: minmax(0, 1fr) !important; }
         }
 
-        /* 오른쪽 메인 핵심 개념 카드 구성 스펙 */
+        /* 핵심 개념 카드 구성 스펙 */
         .concept-card { 
             background: var(--bg-card); 
             padding: 22px;
@@ -155,7 +143,6 @@
         .freq-하 { background: #10b981; }
         .concept-def { font-size: 0.95rem; color: var(--text-sub); line-height: 1.5; word-break: break-all; }
 
-        /* 카테고리와 공식 사이에 표기될 핵심 리스트 디자인 규격 */
         .concept-bullets {
             padding-left: 18px;
             margin: 4px 0;
@@ -170,7 +157,7 @@
             word-break: break-all;
         }
 
-        /* 수식 박스 공간 최적화 및 내부 격리 차단막 설정 */
+        /* 수식 박스 가로폭 고정 해제 및 내부 스크롤 안전 격리 */
         .formula-box { 
             background: var(--primary-light) !important; 
             color: var(--primary) !important; 
@@ -187,7 +174,6 @@
             white-space: nowrap !important;
         }
 
-        /* MathJax 자체 가로/세로 엔진 마진 제로 리셋 */
         .formula-box mjx-container,
         #conceptList mjx-container,
         .concept-card mjx-container {
@@ -197,7 +183,7 @@
             max-width: 100% !important;
         }
 
-        /* CBT 모의고사 실전 모드 스펙 스타일 */
+        /* CBT 모의고사 및 인터랙티브 컨테이너 가득 채우기 */
         .mock-paper-box {
             background: var(--bg-card);
             padding: 35px;
@@ -223,11 +209,7 @@
             transition: all 0.15s ease;
             word-break: break-all;
         }
-        .mock-opt-btn:hover {
-            background: var(--primary-light);
-            border-color: var(--primary);
-        }
-
+        .mock-opt-btn:hover { background: var(--primary-light); border-color: var(--primary); }
         .details-list { padding-left: 20px; margin: 8px 0; font-size: 0.9rem; line-height: 1.6; color: var(--text-sub); }
         .details-list li { margin-bottom: 6px; word-break: break-all; }
         .no-data { grid-column: 1 / -1; text-align: center; color: var(--text-sub); padding: 40px; font-weight: 500; font-style: italic; }
@@ -248,21 +230,13 @@
     <div class="control-panel">
         <div class="select-group">
             <label for="levelSelect">목표 자격증 선택</label>
-          <select id="levelSelect">
-    <option value="foundation">🌱 시각적 전기기초 (실험실)</option> <option value="craftsman">전기기능사</option>
-    <option value="industrial_engineer">전기산업기사</option>
-    <option value="engineer" selected>전기기사</option>
-</select>
-
-<div class="main-layout" id="mainLayoutStructure">
-    <div class="sidebar" id="sidebarSection"> ... </div>
-    <div class="content-area" id="conceptList"></div>
-    <div class="content-area" id="mockExamContainer" style="display: none;"></div>
-    
-    <div class="content-area" id="foundationContainer" style="display: none; grid-column: 1 / -1; width: 100%; min-width: 0;">
-        <iframe id="foundationFrame" src="" style="width: 100%; border: none; min-height: 580px; overflow: hidden;" scrolling="no"></iframe>
-    </div>
-</div>
+            <select id="levelSelect">
+                <option value="foundation">🌱 시각적 전기기초 (실험실)</option>
+                <option value="craftsman">전기기능사</option>
+                <option value="industrial_engineer">전기산업기사</option>
+                <option value="engineer" selected>전기기사</option>
+            </select>
+        </div>
         <div class="select-group">
             <label for="modeSelect">학습 검토 모드</label>
             <select id="modeSelect">
@@ -280,7 +254,6 @@
                 <h5>📚 소속 과목 카테고리</h5>
                 <div class="category-container" id="categoryList"></div>
             </div>
-
             <div class="widget-card" id="qualificationInfo"></div>
             <div class="widget-card" id="mockExamInfo"></div>
         </div>
@@ -289,7 +262,7 @@
         <div class="content-area" id="mockExamContainer" style="display: none;"></div>
         
         <div class="content-area" id="foundationContainer" style="display: none; grid-column: 1 / -1; width: 100%; min-width: 0;">
-            <iframe id="foundationFrame" src="" style="width: 100%; border: none; min-height: 720px; overflow: hidden;" scrolling="no"></iframe>
+            <iframe id="foundationFrame" src="" style="width: 100%; border: none; min-height: 600px; overflow: hidden;" scrolling="no"></iframe>
         </div>
 
     </div>
@@ -590,7 +563,7 @@ function initApp() {
             const foundationFrame = document.getElementById("foundationFrame");
             const sidebarSection = document.getElementById("sidebarSection");
 
-            // 🚨 전기기초 모드 스위칭 동적 인터록 분기 제어
+            // 전기기초 모드 선택 시 인터랙션 모듈 전용 스위칭 인터록
             if (selectedLevel === 'foundation') {
                 if (sidebarSection) sidebarSection.style.display = 'none';
                 if (cGrid) cGrid.style.setProperty('display', 'none', 'important');
@@ -598,7 +571,7 @@ function initApp() {
                 
                 if (foundationContainer && foundationFrame) {
                     foundationContainer.style.display = 'block';
-                    foundationFrame.src = "./foundation/ohm.html"; 
+                    foundationFrame.src = "./foundation/list.html"; 
                 }
             } else {
                 if (foundationContainer) foundationContainer.style.display = 'none';
@@ -624,13 +597,13 @@ function initApp() {
             currentMode = e.target.value;
             clearInterval(mockTimerInterval); 
 
+            // 방어 코드 추가: 현재 레벨이 전기기초(foundation)라면 모드 변경 연동 패스
+            if (selectedLevel === 'foundation') return;
+
             const cGrid = document.getElementById("conceptList");
             const mockContainer = document.getElementById("mockExamContainer");
             const sidebarSection = document.getElementById("sidebarSection");
             const mainLayoutStructure = document.getElementById("mainLayoutStructure");
-            const foundationContainer = document.getElementById("foundationContainer");
-
-            if (selectedLevel === 'foundation') return; // 전기기초 상태일 때는 모드 변경 연동 패스
 
             if (currentMode === 'mockexam') {
                 if (sidebarSection) sidebarSection.style.display = 'none';
@@ -735,7 +708,7 @@ function renderConcepts() {
     conceptContainer.innerHTML = "";
     const filteredConcepts = electricianData.concepts.filter(con => {
         const isLevelMatch = con.levels.includes(selectedLevel);
-        const categoryObj = electricianData.categories.find(c => c.id === con.category);
+        const categoryObj = electricianData.categories.filter(c => c.id === con.category)[0];
         const isModeMatch = categoryObj && categoryObj.mode === currentMode;
         const isCategoryMatch = selectedCategory === 'all' || con.category === selectedCategory;
         return isLevelMatch && isModeMatch && isCategoryMatch;
