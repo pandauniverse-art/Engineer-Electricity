@@ -16,31 +16,17 @@
     --transition: all 0.25s ease;
 }
 
-body.dark-mode {
-    --bg-main: #0f172a;
-    --bg-card: #1e293b;
-    --text-main: #f8fafc;
-    --text-sub: #94a3b8;
-    --primary: #6366f1;
-    --primary-light: #312e81;
-    --border: #334155;
-    --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.4);
-}
-
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
-body { background-color: var(--bg-main); color: var(--text-main); line-height: 1.6; transition: var(--transition); }
-.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+body { background-color: var(--bg-main); color: var(--text-main); line-height: 1.6; transition: var(--transition); overflow-x: hidden; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; width: 100%; }
 
-/* 헤더 */
+/* 헤더 상단바 디자인 스타일 */
 .header { background: var(--bg-card); padding: 15px 0; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); }
 .header-content { display: flex; justify-content: space-between; align-items: center; }
-.logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.4rem; color: var(--text-main); }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.2rem; color: var(--text-main); }
 .logo-icon { width: 36px; height: 36px; background: var(--primary); color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-.icon-btn { background: var(--bg-main); border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; color: var(--text-sub); transition: var(--transition); }
-.icon-btn:hover { background: var(--primary-light); color: var(--primary); }
 
-.main-container { padding: 30px 0 80px; }
+.main-container { padding: 30px 0 80px; width: 100%; }
 
 /* 제어 패널 디자인 */
 .control-panel { 
@@ -54,6 +40,7 @@ body { background-color: var(--bg-main); color: var(--text-main); line-height: 1
     gap: 20px; 
     justify-content: center;
     flex-wrap: wrap;
+    width: 100%;
 }
 .select-group { display: flex; flex-direction: column; gap: 8px; }
 .select-group label { font-weight: bold; font-size: 0.9rem; }
@@ -67,17 +54,18 @@ body { background-color: var(--bg-main); color: var(--text-main); line-height: 1
     color: var(--text-main);
 }
 
-/* 2단 대시보드 레이아웃 배정 */
+/* 🚨 [수정 1] 대시보드 2단 레이아웃 그리드 설정 (minmax 0 추가로 영역 뚫림 방지) */
 .main-layout { 
     display: grid; 
-    grid-template-columns: 320px 1fr; 
+    grid-template-columns: 320px minmax(0, 1fr); 
     gap: 25px; 
+    width: 100%;
 }
 @media (max-width: 768px) {
-    .main-layout { grid-template-columns: 1fr; }
+    .main-layout { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* 사이드바 배치 */
+/* 좌측 사이드바 구조 */
 .sidebar { display: flex; flex-direction: column; gap: 20px; }
 .widget-card { 
     background: var(--bg-card); 
@@ -88,7 +76,7 @@ body { background-color: var(--bg-main); color: var(--text-main); line-height: 1
 }
 .widget-card h5 { margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; border-bottom: 2px solid var(--primary); padding-bottom: 6px; color: var(--primary); }
 
-/* 과목 카테고리 필터 스위치 버튼 */
+/* 과목 필터링 카테고리 버튼 */
 .category-container { display: flex; flex-direction: column; gap: 10px; }
 .category-btn { 
     padding: 12px 15px; 
@@ -107,18 +95,16 @@ body { background-color: var(--bg-main); color: var(--text-main); line-height: 1
 }
 .category-btn:hover { background: var(--border); transform: translateX(4px); }
 
-/* 🚨 [정밀 저격 수정] 우측 메인 영역 영역을 가로 2열 바둑판 구조로 무조건 쪼갬 */
+/* 🚨 [수정 2] 창 크기에 따라 자동으로 1열 ↔ 2열로 변환되는 반응형 그리드 도입 */
 .content-area { 
     display: grid !important; 
-    grid-template-columns: repeat(2, 1fr) !important; 
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important; 
     gap: 20px !important; 
     align-content: start;
-}
-@media (max-width: 992px) {
-    .content-area { grid-template-columns: 1fr !important; }
+    width: 100%;
 }
 
-/* 오른쪽 메인 핵심 개념 카드 구성 스펙 */
+/* 🚨 [수정 3] 공식 개념 카드 레이아웃 (내부 콘텐츠가 카드를 밀어내지 못하게 차단) */
 .concept-card { 
     background: var(--bg-card); 
     padding: 22px;
@@ -129,16 +115,18 @@ body { background-color: var(--bg-main); color: var(--text-main); line-height: 1
     flex-direction: column;
     gap: 12px;
     height: max-content;
+    min-width: 0; /* 부모 너비 초과 방지 마스터 키 */
+    overflow: hidden;
 }
-.card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-.concept-title { font-size: 1.25rem; font-weight: 700; color: var(--text-main); }
-.freq-badge { font-size: 0.8rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; color: white; }
+.card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+.concept-title { font-size: 1.15rem; font-weight: 700; color: var(--text-main); word-break: keep-all; }
+.freq-badge { font-size: 0.8rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; color: white; white-space: nowrap; }
 .freq-상 { background: #ef4444; }
 .freq-중 { background: #f59e0b; }
 .freq-하 { background: #10b981; }
-.concept-def { font-size: 1rem; color: var(--text-sub); line-height: 1.5; }
+.concept-def { font-size: 0.95rem; color: var(--text-sub); line-height: 1.5; word-break: keep-all; }
 
-/* 🚨 [새로 추가] 카테고리와 공식 사이에 표기될 핵심 리스트 디자인 규격 */
+/* 카드 내부 텍스트 리스트 설정 */
 .concept-bullets {
     padding-left: 18px;
     margin: 4px 0;
@@ -147,55 +135,55 @@ body { background-color: var(--bg-main); color: var(--text-main); line-height: 1
     gap: 6px;
 }
 .concept-bullets li {
-    font-size: 0.88rem;
+    font-size: 0.85rem;
     color: var(--text-main);
     list-style-type: square;
     word-break: keep-all;
 }
 
-/* 수식 박스 공간 최적화 및 가로폭 콤팩트 중앙 정렬 */
+/* 수식 박스 공간 최적화 (가로 스크롤 허용하여 카드 모양 유지) */
 .formula-box { 
     background: var(--primary-light) !important; 
     color: var(--primary) !important; 
-    padding: 8px 20px !important;    
+    padding: 12px 20px !important;    
     border-radius: var(--radius-md); 
-    font-size: 1.05rem !important; 
-    width: max-content !important;   /* 가로폭 수식 크기에 맞춤 */
+    font-size: 1rem !important; 
+    width: 100% !important;   
     max-width: 100% !important;      
-    margin: 10px auto !important;    /* 중앙 자동 정렬 */
-    display: block !important;       
+    margin: 5px auto 0 !important;    
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    overflow-x: auto; /* 수식이 길면 박스 안에서만 스크롤되도록 설정 */
 }
 
-/* MathJax 자체 가로/세로 엔진 마진 제로 리셋 */
+/* MathJax 마진 패딩 제로 마스터 상쇄 처리 */
 .formula-box mjx-container,
 #conceptList mjx-container,
 .concept-card mjx-container {
     margin: 0 !important;
     padding: 0 !important;
     display: inline-block !important;
+    max-width: 100% !important;
 }
 
-/* 퀴즈 객관식 버튼 스타일 */
-.quiz-options { display: flex; flex-direction: column; gap: 10px; }
-.quiz-option-btn { width: 100%; text-align: left; padding: 16px 20px; border-radius: 12px; border: 2px solid var(--border); background: var(--bg-card); color: var(--text-main); font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: var(--transition); word-break: keep-all; }
-.quiz-option-btn:hover { border-color: var(--primary); background: var(--bg-main); }
-
-/* CBT 모의고사 시험실 전용 커스텀 디자인 박스 */
+/* CBT 모의고사 시험 구동 레이아웃 템플릿 */
 .mock-paper-box {
     background: var(--bg-card);
     padding: 30px;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
     border: 1px solid var(--border);
+    grid-column: 1 / -1; /* 모의고사 작동 시 화면 전체 확장 대응 */
+    width: 100%;
 }
 
-/* 모의고사 선지 마킹 버튼 기본 상태 */
 .mock-opt-btn {
     width: 100%; 
     display: flex; 
     align-items: center; 
     text-align: left; 
-    padding: 10px 18px; 
+    padding: 14px 18px; 
     border: 1px solid var(--border); 
     border-radius: 8px; 
     background: var(--bg-card); 
@@ -210,5 +198,5 @@ body { background-color: var(--bg-main); color: var(--text-main); line-height: 1
 }
 
 .details-list { padding-left: 20px; margin-top: 10px; font-size: 0.9rem; color: var(--text-sub); line-height: 1.6; }
-.details-list li { margin-bottom: 6px; }
-.no-data { grid-column: span 2; text-align: center; padding: 40px; color: var(--text-sub); font-weight: 500; font-style: italic; }
+.details-list li { margin-bottom: 6px; word-break: keep-all; }
+.no-data { grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-sub); font-weight: 500; font-style: italic; }
