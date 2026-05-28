@@ -43,8 +43,7 @@ function initApp() {
                 if (foundationContainer && foundationFrame) {
                     foundationContainer.style.display = 'block';
                     // GitHub Pages 호환용 상대 경로 라우팅 적용
-                    foundationFrame.src = "./foundation/ohm.html"; 
-                }
+foundationFrame.src = "./foundation/list.html";                }
             } else {
                 if (foundationContainer) foundationContainer.style.display = 'none';
                 if (sidebarSection) sidebarSection.style.display = 'flex';
@@ -67,6 +66,7 @@ function initApp() {
     if (modeSelect) {
         modeSelect.addEventListener("change", (e) => {
             currentMode = e.target.value;
+            if (selectedLevel === 'foundation') return;
             clearInterval(mockTimerInterval); 
 
             const cGrid = document.getElementById("conceptList");
