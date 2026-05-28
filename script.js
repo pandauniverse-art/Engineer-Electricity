@@ -153,7 +153,7 @@ function renderConcepts() {
     }
 
     filteredConcepts.forEach(con => {
-        /* 🚨 공식 박스 상하 패딩 및 글자 크기 콤팩트 조절 인라인 스타일 반영 */
+        /* 🚨 수식 내부 마진 강제 주입 스타일 코드로 교체 완료 (CSS와 완벽 호환) */
         conceptContainer.innerHTML += `
             <div class="concept-card" id="concept-${con.id}">
                 <div class="card-header">
@@ -161,7 +161,7 @@ function renderConcepts() {
                     <h4 class="concept-title">${con.title}</h4>
                 </div>
                 <p class="concept-def">${con.definition}</p>
-               ${con.formula ? `<div class="formula-box" style="background:var(--primary-light); padding:4px 15px; border-radius:8px; text-align:center; margin-top:4px; font-size:1rem; --mjx-margin: 0 !important;"><style>.formula-box mjx-container{margin:0 !important; padding:0 !important;}</style>${con.formula.replace(/\\n/g, '<br/>')}</div>` : ''}
+                ${con.formula ? `<div class="formula-box" style="background:var(--primary-light); padding:4px 15px; border-radius:8px; text-align:center; margin-top:4px; font-size:1rem; --mjx-margin: 0 !important;"><style>.formula-box mjx-container{margin:0 !important; padding:0 !important;}</style>${con.formula.replace(/\\n/g, '<br/>')}</div>` : ''}
             </div>
         `;
     });
@@ -222,7 +222,6 @@ function renderMockQuestionScreen() {
     const min = Math.floor(mockTimeLeft / 60);
     const sec = mockTimeLeft % 60;
 
-    /* 🚨 모의고사 버튼 컴팩트 패딩 디자인 속성 일괄 일치 반영 */
     container.innerHTML = `
         <div class="mock-paper-box">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #e2e8f0; padding-bottom:15px; margin-bottom:20px;">
