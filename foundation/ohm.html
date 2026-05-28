@@ -123,16 +123,17 @@
             font-size: 1.75rem;
             z-index: 3;
             border: 2px solid #334155;
-            transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+            transition: transform 0.1s ease, background 0.1s ease, box-shadow 0.1s ease;
         }
 
+        /* 🚨 파티클 디자인 튜닝: 빛의 궤적을 위해 약간 타원형으로 조정 */
         .current-particle {
             position: absolute;
-            width: 8px;
-            height: 8px;
+            width: 12px;
+            height: 6px;
             background: #f59e0b;
             border-radius: 50%;
-            box-shadow: 0 0 8px #f59e0b;
+            box-shadow: 0 0 10px 2px #f59e0b;
             z-index: 4;
             animation: circuitFlow linear infinite;
             animation-duration: var(--flow-speed, 2.8s);
@@ -284,7 +285,7 @@
                     <span style="color:#10b981;">🔋 전압 조절</span>
                     <span style="color:#10b981;" id="vVal">5.0 V</span>
                 </div>
-                <input type="range" id="vRange" min="1" max="12" step="0.5" value="5">
+                <input type="range" id="vRange" min="1" max="24" step="0.5" value="5">
             </div>
 
             <div class="slider-group">
@@ -292,7 +293,7 @@
                     <span style="color:#94a3b8;">🚧 저항 조절</span>
                     <span style="color:#94a3b8;" id="rVal">10 Ω</span>
                 </div>
-                <input type="range" id="rRange" min="2" max="50" step="1" value="10">
+                <input type="range" id="rRange" min="1" max="50" step="1" value="10">
             </div>
         </div>
     </div>
@@ -313,7 +314,7 @@
 
     function processCircuitDynamics() {
         const v = parseFloat(vRange.value);
-        const r = Math.max(2, parseFloat(rRange.value));
+        const r = parseFloat(rRange.value);
         const i = v / r;
 
         vText.innerText = v.toFixed(1);
@@ -324,36 +325,41 @@
 
         resistor.innerText = `🚧 ${r}Ω 저항`;
 
-        const visualCurrent = Math.min(i, 2.5);
-        const bulbScale = 1 + (visualCurrent * 0.08);
-        const glowRadius = 10 + (visualCurrent * 14);
-        const alpha = Math.min(0.25 + (visualCurrent * 0.25), 0.85);
+        // 전압 뻥튀기 시뮬레이션을 고려한 전구 스케일/오파시티 상한선 재설정
+        const visualCurrent = Math.min(i, 15); // 최대 제한치를 대폭 상향 (최대 24A)
+        const bulbScale = Math.min(1 + (visualCurrent * 0.05), 1.5); // 폭발할 듯이 커지되 제한선 부여
+        const glowRadius = Math.min(10 + (visualCurrent * 12), 150);
+        const alpha = Math.min(0.1 + (visualCurrent * 0.15), 1);
 
         bulb.style.background = `rgba(245, 158, 11, ${alpha})`;
         bulb.style.transform = `translate(50%, -50%) scale(${bulbScale})`;
-        bulb.style.boxShadow = `0 0 ${glowRadius}px rgba(245, 158, 11, ${alpha})`;
+        bulb.style.boxShadow = `0 0 ${glowRadius}px ${glowRadius/2}px rgba(245, 158, 11, ${alpha})`;
 
-        const resistorColorIntensity = Math.max(40, 120 - (r * 2));
+        const resistorColorIntensity = Math.max(40, 120 - (r * 2.5));
         resistor.style.background = `rgb(${resistorColorIntensity}, ${resistorColorIntensity + 15}, ${resistorColorIntensity + 30})`;
 
-        const speedDuration = Math.max(1.2, 4.2 - (visualCurrent * 0.8));
+        // 🚨 1. 애니메이션 속도(duration) 극한 해제: 최저 0.35초 단위로 맹렬하게 달림
+        const speedDuration = Math.max(0.35, 4.0 / Math.max(i, 0.5));
         stage.style.setProperty('--flow-speed', `${speedDuration}s`);
 
-        const maxDots = Math.max(2, Math.min(Math.ceil(i * 3), 5));
+        // 🚨 2. 파티클 수량(density) 극한 해제: 최대 40개의 파티클이 일렬로 레이저처럼 출력
+        const maxDots = Math.min(Math.floor(i * 3) + 3, 40);
 
         circuitLoop.querySelectorAll('.current-particle').forEach(el => el.remove());
 
         for (let k = 0; k < maxDots; k++) {
             const dot = document.createElement('div');
             dot.className = 'current-particle';
+            
+            // 촘촘한 기차놀이 딜레이 주입
             dot.style.animationDelay = `${k * (speedDuration / maxDots)}s`;
+            
             circuitLoop.appendChild(dot);
         }
     }
 
     function resetScrollPosition() {
         window.scrollTo(0, 0);
-
         try {
             if (window.parent && window.parent !== window) {
                 window.parent.scrollTo(0, 0);
