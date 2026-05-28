@@ -7,63 +7,66 @@
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 
-        * { margin: 0; padding: 0; box-sizing: border-box !important; font-family: 'Pretendard', sans-serif; }
-        
-        /* 1. 실험실 감성의 어두운 테마 세팅 */
-       body { 
-    background-color: #0b0f19; 
-    color: #f1f5f9; 
-    padding: 12px; 
-    overflow-x: hidden;
-    min-height: auto;
-}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box !important;
+            font-family: 'Pretendard', sans-serif;
+        }
 
-        /* 메인 실험 키트 레이아웃 (회로 70% : 컨트롤 30%) */
-.lab-kit {
-    background: #141b2d;
-    border: 1px solid #1f293d;
-    border-radius: 20px;
-    padding: 18px;
-    width: 100%;
-    max-width: 1180px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) 320px;
-    gap: 18px;
-    box-shadow: 0 12px 24px rgba(0,0,0,0.35);
-    align-items: stretch;
-}
+        body {
+            background-color: #0b0f19;
+            color: #f1f5f9;
+            padding: 12px;
+            overflow: hidden;
+        }
 
-@media (max-width: 700px) {
-    .lab-kit {
-        grid-template-columns: 1fr;
-    }
-}
+        .lab-kit {
+            background: #141b2d;
+            border: 1px solid #1f293d;
+            border-radius: 20px;
+            padding: 16px;
+            width: 100%;
+            max-width: 1180px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: minmax(340px, 1fr) 260px;
+            gap: 16px;
+            align-items: stretch;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.35);
+        }
 
-        /* 🚨 2. 회로 시각화 영역 (70% 비중) */
-  .circuit-section {
-    background: #090d16;
-    border: 2px dashed #1f293d;
-    border-radius: 16px;
-  height: 320px;
-    min-width: 0;
-    position: relative;
-    overflow: hidden;
-}
+        @media (max-width: 560px) {
+            body {
+                overflow-y: auto;
+            }
 
-        /* 직관적인 루프선 (배터리 - 저항 - 전구 연결) */
-       .circuit-loop {
-    position: absolute;
-    left: 15%;
-    top: 22%;
-    width: 70%;
-    height: 56%;
-    border: 4px solid #1e293b;
-    border-radius: 20px;
-    z-index: 1;
-}
+            .lab-kit {
+                grid-template-columns: 1fr;
+            }
+        }
 
-        /* 🔋 전원부 (왼쪽 배치) */
+        .circuit-section {
+            background: #090d16;
+            border: 2px dashed #1f293d;
+            border-radius: 16px;
+            height: 310px;
+            min-width: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .circuit-loop {
+            position: absolute;
+            left: 15%;
+            top: 22%;
+            width: 70%;
+            height: 56%;
+            border: 4px solid #1e293b;
+            border-radius: 20px;
+            z-index: 1;
+        }
+
         .component-battery {
             position: absolute;
             left: 15%;
@@ -76,16 +79,22 @@
             font-weight: 800;
             z-index: 3;
             border: 2px solid #047857;
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
-        }
-        .component-battery::before {
-            content: '+'; position: absolute; top: -22px; left: 50%; transform: translateX(-50%); color: #10b981; font-weight: bold;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
         }
 
-        /* 🚧 저항부 (하단 배치) */
+        .component-battery::before {
+            content: '+';
+            position: absolute;
+            top: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #10b981;
+            font-weight: bold;
+        }
+
         .component-resistor {
             position: absolute;
-            bottom: 20%;
+            bottom: 22%;
             left: 50%;
             transform: translate(-50%, 50%);
             background: #64748b;
@@ -96,73 +105,74 @@
             font-weight: 700;
             z-index: 3;
             border: 2px dashed #475569;
-            transition: background 0.2s;
+            transition: background 0.2s ease;
         }
 
-        /* 💡 전구 오브젝트 (우측 배치, scale/glow 가속 인하우스 처리) */
         .component-bulb {
             position: absolute;
             right: 15%;
             top: 50%;
             transform: translate(50%, -50%) scale(1);
-            width: 65px;
-            height: 65px;
+            width: 62px;
+            height: 62px;
             background: #1e293b;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 1.8rem;
+            font-size: 1.75rem;
             z-index: 3;
             border: 2px solid #334155;
-            will-change: transform, box-shadow, background;
-            transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.15s ease, box-shadow 0.15s ease;
+            transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
         }
 
-        /* 🏃 3. 전류 흐름 파티클 (glowing dot)
-           레이아웃 배치 연산을 피하고 transform 원형 궤적 운동으로 렉 제로화 */
         .current-particle {
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    background: #f59e0b;
-    border-radius: 50%;
-    box-shadow: 0 0 8px #f59e0b;
-    z-index: 4;
-    animation: circuitFlow linear infinite;
-    animation-duration: var(--flow-speed, 2.8s);
-    will-change: left, top;
-}
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #f59e0b;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #f59e0b;
+            z-index: 4;
+            animation: circuitFlow linear infinite;
+            animation-duration: var(--flow-speed, 2.8s);
+            transform: translate(-50%, -50%);
+            will-change: left, top;
+            pointer-events: none;
+        }
 
-        /* 사각형 회로 트랙을 부드럽게 순환하는 하드웨어 가속 키프레임 */
-       @keyframes circuitFlow {
-    0%   { left: 0%;   top: 100%; opacity: 0; }
-    5%   { opacity: 1; }
-    25%  { left: 0%;   top: 0%; }
-    50%  { left: 100%; top: 0%; }
-    75%  { left: 100%; top: 100%; }
-    95%  { opacity: 1; }
-    100% { left: 0%;   top: 100%; opacity: 0; }
-}
+        @keyframes circuitFlow {
+            0%   { left: 0%;   top: 100%; opacity: 0; }
+            5%   { opacity: 1; }
+            25%  { left: 0%;   top: 0%; }
+            50%  { left: 100%; top: 0%; }
+            75%  { left: 100%; top: 100%; }
+            95%  { opacity: 1; }
+            100% { left: 0%;   top: 100%; opacity: 0; }
+        }
 
-        /* 🚨 4. 정보 및 컨트롤 영역 (30% 비중) */
-   .control-section {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    gap: 16px;
-    min-width: 0;
-}
+        .control-section {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            gap: 12px;
+            min-width: 0;
+        }
 
         .panel-header {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 700;
             color: #818cf8;
             border-bottom: 1px solid #1f293d;
             padding-bottom: 8px;
         }
 
-        /* 미니멀 데이터 디스플레이 */
+        .panel-sub {
+            font-size: 0.78rem;
+            color: #64748b;
+            margin-top: 5px;
+        }
+
         .mini-display {
             background: #090d16;
             border: 1px solid #1f293d;
@@ -172,33 +182,47 @@
             flex-direction: column;
             gap: 8px;
         }
+
         .data-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.9rem;
+            gap: 12px;
+            font-size: 0.86rem;
             color: #94a3b8;
         }
-        .data-row strong { font-size: 1.2rem; color: #f8fafc; }
-        .data-row .highlight-i { color: #f43f5e; font-size: 1.3rem; }
 
-        /* 컨트롤 슬라이더 스펙 */
+        .data-row strong {
+            font-size: 1.12rem;
+            color: #f8fafc;
+            white-space: nowrap;
+        }
+
+        .data-row .highlight-i {
+            color: #f43f5e;
+            font-size: 1.22rem;
+        }
+
         .slider-wrapper {
             display: flex;
             flex-direction: column;
             gap: 12px;
         }
+
         .slider-group {
             display: flex;
             flex-direction: column;
             gap: 6px;
         }
+
         .slider-meta {
             display: flex;
             justify-content: space-between;
-            font-size: 0.85rem;
+            gap: 10px;
+            font-size: 0.84rem;
             font-weight: 600;
         }
+
         .slider-group input[type="range"] {
             width: 100%;
             height: 6px;
@@ -208,6 +232,7 @@
             -webkit-appearance: none;
             cursor: pointer;
         }
+
         .slider-group input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             width: 18px;
@@ -216,6 +241,7 @@
             background: #4f46e5;
             transition: transform 0.1s;
         }
+
         .slider-group input[type="range"]::-webkit-slider-thumb:active {
             transform: scale(1.2);
         }
@@ -225,7 +251,7 @@
 
 <div class="lab-kit">
     <div class="circuit-section" id="stage">
-        <div class="circuit-loop"></div>
+        <div class="circuit-loop" id="circuitLoop"></div>
         <div class="component-battery" id="battery">🔋</div>
         <div class="component-resistor" id="resistor">🚧 저항</div>
         <div class="component-bulb" id="bulb">💡</div>
@@ -234,7 +260,7 @@
     <div class="control-section">
         <div>
             <div class="panel-header">📐 Ohm's Law 실험 제어판</div>
-            <p style="font-size: 0.8rem; color: #64748b; margin-top: 5px;">슬라이더를 움직여 회로의 변화를 확인하세요.</p>
+            <p class="panel-sub">전압과 저항을 바꾸며 전류 변화를 확인하세요.</p>
         </div>
 
         <div class="mini-display">
@@ -243,7 +269,7 @@
                 <span><strong id="vText">5.0</strong> V</span>
             </div>
             <div class="data-row">
-               <span>저항 R</span>
+                <span>저항 R</span>
                 <span><strong id="rText">10</strong> Ω</span>
             </div>
             <div class="data-row" style="border-top: 1px dashed #1f293d; padding-top: 8px; margin-top: 4px;">
@@ -283,110 +309,67 @@
     const bulb = document.getElementById('bulb');
     const resistor = document.getElementById('resistor');
     const stage = document.getElementById('stage');
-    const circuitLoop = document.querySelector('.circuit-loop');
+    const circuitLoop = document.getElementById('circuitLoop');
 
-    // 🏃 고성능 물리 흐름 동기화 엔진
     function processCircuitDynamics() {
         const v = parseFloat(vRange.value);
-        const r = parseFloat(rRange.value);
-        const i = v / r; // I = V / R
+        const r = Math.max(2, parseFloat(rRange.value));
+        const i = v / r;
 
-        // 1. 수치 계측 바인딩
         vText.innerText = v.toFixed(1);
         vVal.innerText = v.toFixed(1) + ' V';
         rText.innerText = r;
         rVal.innerText = r + ' Ω';
         iText.innerText = i.toFixed(2);
 
-        // 저항 컴포넌트 텍스트 매핑
         resistor.innerText = `🚧 ${r}Ω 저항`;
 
-        // 2. 💡 전구 반응식 고도화 (Scale 확대 및 Glow 발산 동시 유기 인터록)
-       const visualCurrent = Math.min(i, 2.5);
-const bulbScale = 1 + (visualCurrent * 0.08);
-const glowRadius = 10 + (visualCurrent * 14);
-const alpha = Math.min(0.25 + (visualCurrent * 0.25), 0.85);
+        const visualCurrent = Math.min(i, 2.5);
+        const bulbScale = 1 + (visualCurrent * 0.08);
+        const glowRadius = 10 + (visualCurrent * 14);
+        const alpha = Math.min(0.25 + (visualCurrent * 0.25), 0.85);
 
-        if (i > 0.05) {
-            bulb.style.background = `rgba(245, 158, 11, ${alpha})`;
-            bulb.style.transform = `translate(50%, -50%) scale(${bulbScale})`;
-           bulb.style.boxShadow = `0 0 ${glowRadius}px rgba(245, 158, 11, ${alpha})`;
-        } else {
-            bulb.style.background = '#1e293b';
-            bulb.style.transform = `translate(50%, -50%) scale(1)`;
-            bulb.style.boxShadow = 'none';
-        }
+        bulb.style.background = `rgba(245, 158, 11, ${alpha})`;
+        bulb.style.transform = `translate(50%, -50%) scale(${bulbScale})`;
+        bulb.style.boxShadow = `0 0 ${glowRadius}px rgba(245, 158, 11, ${alpha})`;
 
-        // 3. 🚧 저항값 시각화 (방해물이 커질수록 색상이 탁해지도록 유도)
         const resistorColorIntensity = Math.max(40, 120 - (r * 2));
         resistor.style.background = `rgb(${resistorColorIntensity}, ${resistorColorIntensity + 15}, ${resistorColorIntensity + 30})`;
 
-        // 4. 🏃 도트 파티클 속도 연동 (CSS Variable을 이용해 리페인팅 비용을 절약)
-        // 전류가 강할수록 한 바퀴 도는 시간(duration)이 극도로 단축됨
-      const speedDuration = Math.max(1.2, 4.2 - (Math.min(i, 2.5) * 0.8));
+        const speedDuration = Math.max(1.2, 4.2 - (visualCurrent * 0.8));
         stage.style.setProperty('--flow-speed', `${speedDuration}s`);
 
-        // 입자 갯수 조율 (렉 방지 최대 8개 한계선 설정)
-       const maxDots = Math.max(2, Math.min(Math.ceil(i * 3), 5));
-        
-        // 기존 입자 일괄 청소
-        document.querySelectorAll('.current-particle').forEach(el => el.remove());
+        const maxDots = Math.max(2, Math.min(Math.ceil(i * 3), 5));
 
-        // 무리하게 루프를 돌리지 않고 최적 수량만 DOM에 배치
-        for(let k = 0; k < maxDots; k++) {
+        circuitLoop.querySelectorAll('.current-particle').forEach(el => el.remove());
+
+        for (let k = 0; k < maxDots; k++) {
             const dot = document.createElement('div');
             dot.className = 'current-particle';
-            // 고정 격차 딜레이 분산으로 기차처럼 꼬리를 물고 달리도록 유도
             dot.style.animationDelay = `${k * (speedDuration / maxDots)}s`;
             circuitLoop.appendChild(dot);
         }
     }
 
-    // 창 크기 대응 동적 가로 보정용 키프레임 인젝션 시동
-    function updateResponsiveKeyframes() {
-    processCircuitDynamics();
-}
-    const stageRect = stage.getBoundingClientRect();
+    function resetScrollPosition() {
+        window.scrollTo(0, 0);
 
-    const loopLeft = stageRect.width * 0.15;
-    const loopRight = stageRect.width * 0.85;
-    const loopTop = stageRect.height * 0.22;
-    const loopBottom = stageRect.height * 0.78;
-
-    const styleSheet = document.styleSheets[0];
-
-    for (let idx = styleSheet.cssRules.length - 1; idx >= 0; idx--) {
-        if (styleSheet.cssRules[idx].name === "circuitFlow") {
-            styleSheet.deleteRule(idx);
-        }
+        try {
+            if (window.parent && window.parent !== window) {
+                window.parent.scrollTo(0, 0);
+            }
+        } catch (error) {}
     }
-
-    styleSheet.insertRule(`@keyframes circuitFlow {
-        0%   { transform: translate(${loopLeft}px, ${loopBottom}px); opacity: 0; }
-        8%   { opacity: 1; }
-        25%  { transform: translate(${loopLeft}px, ${loopTop}px); }
-        50%  { transform: translate(${loopRight}px, ${loopTop}px); }
-        75%  { transform: translate(${loopRight}px, ${loopBottom}px); }
-        92%  { opacity: 1; }
-        100% { transform: translate(${loopLeft}px, ${loopBottom}px); opacity: 0; }
-    }`, styleSheet.cssRules.length);
-
-    processCircuitDynamics();
-}
 
     vRange.addEventListener('input', processCircuitDynamics);
     rRange.addEventListener('input', processCircuitDynamics);
-    window.addEventListener('resize', updateResponsiveKeyframes);
 
-  window.addEventListener('load', () => {
-    window.scrollTo(0, 0);
+    window.addEventListener('load', () => {
+        resetScrollPosition();
+        processCircuitDynamics();
+    });
 
-    if (window.parent && window.parent !== window) {
-        window.parent.scrollTo(0, 0);
-    }
-
-    setTimeout(updateResponsiveKeyframes, 150);
-});
+    window.addEventListener('resize', processCircuitDynamics);
 </script>
 </body>
 </html>
