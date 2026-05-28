@@ -277,7 +277,7 @@
         <div class="content-area" id="mockExamContainer" style="display: none;"></div>
         
         <div class="content-area" id="foundationContainer" style="display: none; grid-column: 1 / -1; width: 100%; min-width: 0;">
-            <iframe id="foundationFrame" src="" style="width: 100%; border: none; min-height: 600px; overflow: hidden;" scrolling="no"></iframe>
+           <iframe id="foundationFrame" src="" style="width: 100%; border: none; min-height: 900px;" scrolling="auto"></iframe>
         </div>
 
     </div>
@@ -564,12 +564,12 @@ function initApp() {
     if (modeSelect) currentMode = modeSelect.value;
 
     if (levelSelect) {
-        levelSelect.addEventListener("change", (e) => {
-        selectedLevel = e.target.value;
+       levelSelect.addEventListener("change", (e) => {
+    selectedLevel = e.target.value;
 
-if (selectedLevel !== 'foundation') {
-    renderSidebarRequirements();
-}
+    if (selectedLevel !== 'foundation') {
+        renderSidebarRequirements();
+    }
             
             const cGrid = document.getElementById("conceptList");
             const mockContainer = document.getElementById("mockExamContainer");
@@ -583,10 +583,10 @@ if (selectedLevel !== 'foundation') {
                 if (cGrid) cGrid.style.setProperty('display', 'none', 'important');
                 if (mockContainer) mockContainer.style.display = 'none';
                 
-             if (foundationContainer && foundationFrame) {
-    foundationContainer.style.display = 'block';
-    foundationFrame.src = "./foundation/ohm.html"; 
-}
+                       if (foundationContainer && foundationFrame) {
+                    foundationContainer.style.display = 'block';
+                    foundationFrame.src = "./foundation/ohm.html";
+                }
             } else {
                 if (foundationContainer) foundationContainer.style.display = 'none';
                 if (sidebarSection) sidebarSection.style.display = 'flex';
