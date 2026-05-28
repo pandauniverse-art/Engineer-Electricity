@@ -1,3 +1,7 @@
+// ==========================================================================
+// 비즈니스 로직 및 동적 UI 바인딩 코어 엔진
+// ==========================================================================
+
 let selectedLevel = 'engineer';
 let selectedCategory = 'all';
 let currentMode = 'written'; 
@@ -23,12 +27,39 @@ function initApp() {
         levelSelect.addEventListener("change", (e) => {
             selectedLevel = e.target.value;
             renderSidebarRequirements();
-            if (currentMode === 'mockexam') {
-                initMockExamCore(selectedLevel);
+            
+            const cGrid = document.getElementById("conceptList");
+            const mockContainer = document.getElementById("mockExamContainer");
+            const foundationContainer = document.getElementById("foundationContainer");
+            const foundationFrame = document.getElementById("foundationFrame");
+            const sidebarSection = document.getElementById("sidebarSection");
+
+            // 🚨 전기기초 모드 선택 시 인터랙션 모듈 전용 스위칭 인터록
+            if (selectedLevel === 'foundation') {
+                if (sidebarSection) sidebarSection.style.display = 'none';
+                if (cGrid) cGrid.style.setProperty('display', 'none', 'important');
+                if (mockContainer) mockContainer.style.display = 'none';
+                
+                if (foundationContainer && foundationFrame) {
+                    foundationContainer.style.display = 'block';
+                    // GitHub Pages 호환용 상대 경로 라우팅 적용
+                    foundationFrame.src = "./foundation/ohm.html"; 
+                }
             } else {
-                selectedCategory = 'all';
-                renderTabs();
-                renderConcepts();
+                if (foundationContainer) foundationContainer.style.display = 'none';
+                if (sidebarSection) sidebarSection.style.display = 'flex';
+                if (cGrid) {
+                    cGrid.style.display = 'grid';
+                    cGrid.style.setProperty('display', 'grid', 'important');
+                }
+                
+                if (currentMode === 'mockexam') {
+                    initMockExamCore(selectedLevel);
+                } else {
+                    selectedCategory = 'all';
+                    renderTabs();
+                    renderConcepts();
+                }
             }
         });
     }
@@ -43,6 +74,8 @@ function initApp() {
             const sidebarSection = document.getElementById("sidebarSection");
             const mainLayoutStructure = document.getElementById("mainLayoutStructure");
 
+            if (selectedLevel === 'foundation') return; // 전기기초 모드 실행 중일 때는 연동 생략
+
             if (currentMode === 'mockexam') {
                 if (sidebarSection) sidebarSection.style.display = 'none';
                 if (mainLayoutStructure) mainLayoutStructure.style.gridTemplateColumns = '1fr';
@@ -50,7 +83,6 @@ function initApp() {
                     cGrid.style.display = 'none';
                     cGrid.style.setProperty('display', 'none', 'important');
                 }
-                
                 if (mockContainer) {
                     mockContainer.style.display = 'block';
                     initMockExamCore(selectedLevel);
@@ -63,7 +95,7 @@ function initApp() {
                 }
                 if (sidebarSection) sidebarSection.style.display = 'flex';
                 if (mainLayoutStructure) {
-                    mainLayoutStructure.style.gridTemplateColumns = window.innerWidth <= 768 ? '1fr' : '320px 1fr';
+                    mainLayoutStructure.style.gridTemplateColumns = window.innerWidth <= 768 ? '1fr' : '280px 1fr';
                 }
                 
                 selectedCategory = 'all';
@@ -159,14 +191,12 @@ function renderConcepts() {
     }
 
     filteredConcepts.forEach(con => {
-        // 카드 내부에 노출할 핵심 요약 스코프 리스트 배열 선언
         const summaryBullets = [
             "국가기술검정 필기/실기 시험 단골 출제 키워드 스코프",
             "공학용 계산기 수식 인자값 대입 및 단위 환산 절대 주의",
             "주관식 단답형 정답 마킹을 위한 필수 암기 핵심 마일스톤"
         ];
 
-        /* 🚨 [구조 대전환 반영] 카테고리 정보와 수식 공식 박스 사이에 핵심 요약 리스트 <ul> 태그 동적 삽입 */
         conceptContainer.innerHTML += `
             <div class="concept-card" id="concept-${con.id}">
                 <div class="card-header">
@@ -302,7 +332,7 @@ function renderMockResultScreen() {
 
 window.addEventListener('resize', () => {
     const mainLayoutStructure = document.getElementById("mainLayoutStructure");
-    if (mainLayoutStructure && currentMode !== 'mockexam') {
-        mainLayoutStructure.style.gridTemplateColumns = window.innerWidth <= 768 ? '1fr' : '320px 1fr';
+    if (mainLayoutStructure && currentMode !== 'mockexam' && selectedLevel !== 'foundation') {
+        mainLayoutStructure.style.gridTemplateColumns = window.innerWidth <= 768 ? '1fr' : '280px 1fr';
     }
 });
