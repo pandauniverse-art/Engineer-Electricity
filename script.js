@@ -153,7 +153,7 @@ function renderConcepts() {
     }
 
     filteredConcepts.forEach(con => {
-        /* 🚨 수식 내부 마진 강제 주입 스타일 코드로 교체 완료 (CSS와 완벽 호환) */
+        /* 🚨 깨진 주석 찌꺼기를 완전히 도려내고, 가로폭 수식 매칭 정렬 코드로 완전 교체 */
         conceptContainer.innerHTML += `
             <div class="concept-card" id="concept-${con.id}">
                 <div class="card-header">
@@ -161,8 +161,7 @@ function renderConcepts() {
                     <h4 class="concept-title">${con.title}</h4>
                 </div>
                 <p class="concept-def">${con.definition}</p>
-                // renderConcepts() 내부의 formula-box 출력 한 줄을 아래 코드로 변경
-${con.formula ? `<div class="formula-box" style="background:var(--primary-light); padding:10px 20px; border-radius:8px; text-align:center; margin:10px auto; width:max-content; max-width:100%; display:block; font-size:1.05rem;">${con.formula.replace(/\\n/g, '<br/>')}</div>` : ''}
+                ${con.formula ? `<div class="formula-box" style="background:var(--primary-light); padding:10px 20px; border-radius:8px; text-align:center; margin:10px auto; width:max-content; max-width:100%; display:block; font-size:1.05rem;">${con.formula.replace(/\\n/g, '<br/>')}</div>` : ''}
             </div>
         `;
     });
