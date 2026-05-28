@@ -277,7 +277,7 @@
         <div class="content-area" id="mockExamContainer" style="display: none;"></div>
         
         <div class="content-area" id="foundationContainer" style="display: none; grid-column: 1 / -1; width: 100%; min-width: 0;">
-         <iframe id="foundationFrame" src="" style="width: 100%; border: none; min-height: 560px;" scrolling="auto"></iframe>
+       <iframe id="foundationFrame" src="" style="width: 100%; border: none; height: 560px; overflow: hidden;" scrolling="no"></iframe>
         </div>
 
     </div>
@@ -578,28 +578,30 @@ function initApp() {
             const sidebarSection = document.getElementById("sidebarSection");
 
             // 전기기초 모드 선택 시 인터랙션 모듈 전용 스위칭 인터록
-            if (selectedLevel === 'foundation') {
-                if (sidebarSection) sidebarSection.style.display = 'none';
-                if (cGrid) cGrid.style.setProperty('display', 'none', 'important');
-                if (mockContainer) mockContainer.style.display = 'none';
-                
-                    window.location.href = "./foundation/ohm.html";
-            } else {
-                if (foundationContainer) foundationContainer.style.display = 'none';
-                if (sidebarSection) sidebarSection.style.display = 'flex';
-                if (cGrid) {
-                    cGrid.style.display = 'grid';
-                    cGrid.style.setProperty('display', 'grid', 'important');
-                }
-                
-                if (currentMode === 'mockexam') {
-                    initMockExamCore(selectedLevel);
-                } else {
-                    selectedCategory = 'all';
-                    renderTabs();
-                    renderConcepts();
-                }
-            }
+        if (selectedLevel === 'foundation') {
+    if (sidebarSection) sidebarSection.style.display = 'none';
+    if (cGrid) cGrid.style.setProperty('display', 'none', 'important');
+    if (mockContainer) mockContainer.style.setProperty('display', 'none', 'important');
+
+    if (foundationContainer && foundationFrame) {
+        foundationContainer.style.setProperty('display', 'block', 'important');
+        foundationFrame.src = "./foundation/ohm.html";
+    }
+} else {
+    if (foundationContainer) foundationContainer.style.setProperty('display', 'none', 'important');
+    if (sidebarSection) sidebarSection.style.display = 'flex';
+    if (cGrid) {
+        cGrid.style.setProperty('display', 'grid', 'important');
+    }
+
+    if (currentMode === 'mockexam') {
+        initMockExamCore(selectedLevel);
+    } else {
+        selectedCategory = 'all';
+        renderTabs();
+        renderConcepts();
+    }
+}
         });
     }
 
