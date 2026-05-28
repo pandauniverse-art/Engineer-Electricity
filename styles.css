@@ -131,15 +131,15 @@ body { background-color: var(--bg-main); color: var(--text-main); line-height: 1
 .formula-box { 
     background: var(--primary-light) !important; 
     color: var(--primary) !important; 
-    padding: 2px 15px !important;    /* 상하 패딩을 최소 단위인 2px로 극단 압축 */
+    padding: 8px 20px !important;    /* 여백은 적당히 유지 */
     border-radius: var(--radius-md); 
-    font-size: 0.95rem !important; 
-    margin-top: 4px !important;
-    margin-bottom: 4px !important; 
-    overflow-x: auto; 
-    white-space: nowrap; 
-    text-align: center;
-    display: block;
+    font-size: 1.05rem !important; 
+    
+    /* 🚨 좌우 폭을 줄이고 가운데로 정렬하는 핵심 속성 */
+    width: max-content !important;   /* 박스 너비를 수식 글자 크기에 딱 맞춤 */
+    max-width: 100% !important;      /* 화면 넘침 방지 */
+    margin: 10px auto !important;    /* 위아래 마진을 주고, 좌우 auto로 가운데 정렬 */
+    display: block !important;       /* block 속성에서 margin: auto가 먹히도록 설정 */
 }
 
 /* 🚨 MathJax 고유 컨테이너 자동생성 여백 파괴 강제 룰 */
