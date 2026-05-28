@@ -6,34 +6,56 @@
     <title>전기 마스터 스마트 학습 플랫폼</title>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
     <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
         :root {
-            --primary-color: #2b6cb0;
-            --bg-color: #f7fafc;
-            --card-bg: #ffffff;
-            --border-color: #e2e8f0;
-            --text-main: #2d3748;
-            --text-muted: #718096;
+            --bg-main: #f5f7fa;
+            --bg-card: #ffffff;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --primary: #4f46e5;
+            --primary-light: #e0e7ff;
+            --border: #e2e8f0;
+            
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.06);
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --transition: all 0.25s ease;
         }
 
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: var(--bg-color); 
-            margin: 0; 
-            padding: 20px; 
-            color: var(--text-main);
+        body.dark-mode {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --primary: #6366f1;
+            --primary-light: #312e81;
+            --border: #334155;
+            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.4);
         }
 
-        .container { max-width: 1200px; margin: 0 auto; }
-        h1 { text-align: center; margin-bottom: 30px; font-size: 2rem; color: #1a202c; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-main); line-height: 1.6; transition: var(--transition); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+        /* 헤더 */
+        .header { background: var(--bg-card); padding: 15px 0; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); }
+        .header-content { display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.4rem; color: var(--text-main); }
+        .logo-icon { width: 36px; height: 36px; background: var(--primary); color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+
+        .main-container { padding: 30px 0 80px; }
 
         /* 제어 패널 디자인 */
         .control-panel { 
-            background: var(--card-bg); 
+            background: var(--bg-card); 
             padding: 20px; 
             border-radius: 10px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+            box-shadow: var(--shadow-sm); 
             margin-bottom: 25px; 
-            border: 1px solid var(--border-color); 
+            border: 1px solid var(--border); 
             display: flex; 
             gap: 20px; 
             justify-content: center;
@@ -44,10 +66,10 @@
         .select-group select { 
             padding: 10px 15px; 
             border-radius: 6px; 
-            border: 1px solid var(--border-color); 
+            border: 1px solid var(--border); 
             font-size: 1rem; 
             min-width: 200px;
-            background-color: var(--card-bg);
+            background-color: var(--bg-card);
             color: var(--text-main);
         }
 
@@ -64,20 +86,20 @@
         /* 사이드바 배치 */
         .sidebar { display: flex; flex-direction: column; gap: 20px; }
         .widget-card { 
-            background: var(--card-bg); 
+            background: var(--bg-card); 
             padding: 20px; 
             border-radius: 8px; 
-            border: 1px solid var(--border-color);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
         }
-        .widget-card h5 { margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; border-bottom: 2px solid var(--primary-color); padding-bottom: 6px; color: var(--primary-color); }
+        .widget-card h5 { margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; border-bottom: 2px solid var(--primary); padding-bottom: 6px; color: var(--primary); }
 
         /* 과목 카테고리 필터 스위치 버튼 */
         .category-container { display: flex; flex-direction: column; gap: 10px; }
         .category-btn { 
             padding: 12px 15px; 
-            background: var(--card-bg); 
-            border: 1px solid var(--border-color); 
+            background: var(--bg-card); 
+            border: 1px solid var(--border); 
             border-radius: 6px; 
             text-align: left; 
             font-size: 0.95rem; 
@@ -89,56 +111,87 @@
             align-items: center;
             gap: 10px;
         }
-        .category-btn:hover { background: #e2e8f0; transform: translateX(4px); }
+        .category-btn:hover { background: var(--border); transform: translateX(4px); }
 
-        /* 오른쪽 메인 핵심 200선 개념 카드 구성 스펙 */
-        .content-area { display: flex; flex-direction: column; gap: 20px; }
+        /* 🚨 [핵심 수정] 우측 메인 영역을 가로 2열 바둑판 구조로 무조건 쪼갬 */
+        .content-area { 
+            display: grid !important; 
+            grid-template-columns: repeat(2, 1fr) !important; 
+            gap: 20px !important; 
+            align-content: start;
+        }
+        @media (max-width: 992px) {
+            .content-area { grid-template-columns: 1fr !important; }
+        }
+
+        /* 오른쪽 메인 핵심 개념 카드 구성 스펙 */
         .concept-card { 
-            background: var(--card-bg); 
-            padding: 25px; 
-            border-radius: 8px; 
-            border: 1px solid var(--border-color); 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            background: var(--bg-card); 
+            padding: 22px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            height: max-content;
         }
-        .card-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-        .concept-title { margin: 0; font-size: 1.25rem; color: #1a202c; }
-        
-        /* 빈도 등급 식별 라벨 */
-        .freq-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
-        .freq-상 { background: #fed7d7; color: #c53030; }
-        .freq-중 { background: #feebc8; color: #c05621; }
-        .freq-하 { background: #edf2f7; color: #4a5568; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .concept-title { font-size: 1.25rem; font-weight: 700; color: var(--text-main); }
+        .freq-badge { font-size: 0.8rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; color: white; }
+        .freq-상 { background: #ef4444; }
+        .freq-중 { background: #f59e0b; }
+        .freq-하 { background: #10b981; }
+        .concept-def { font-size: 1rem; color: var(--text-sub); line-height: 1.5; }
 
-        .concept-def { font-size: 1rem; line-height: 1.6; color: #4a5568; margin-bottom: 15px; }
-        .concept-formula { 
-            background: #f8fafc; 
-            padding: 15px; 
-            border-radius: 6px; 
+        /* 카테고리와 공식 사이에 표기될 핵심 리스트 디자인 규격 */
+        .concept-bullets {
+            padding-left: 18px;
+            margin: 4px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .concept-bullets li {
+            font-size: 0.88rem;
+            color: var(--text-main);
+            list-style-type: square;
+            word-break: keep-all;
+        }
+
+        /* 수식 박스 공간 최적화 및 가로폭 콤팩트 중앙 정렬 */
+        .formula-box { 
+            background: var(--primary-light) !important; 
+            color: var(--primary) !important; 
+            padding: 12px 20px !important;    
+            border-radius: var(--radius-md); 
+            font-size: 1.05rem !important; 
+            width: 100% !important;   
+            max-width: 100% !important;      
+            margin: 10px auto !important;    
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
             overflow-x: auto;
-            border: 1px solid var(--border-color);
-            font-size: 1.05rem;
         }
 
-        .no-data { text-align: center; color: var(--text-muted); padding: 10px 0; font-style: italic; }
-        .details-list { padding-left: 20px; margin: 8px 0; font-size: 0.9rem; line-height: 1.6; color: #4a5568; }
-        .details-list li { margin-bottom: 6px; }
-        .mock-settings-card ul { padding-left: 20px; font-size: 0.9rem; line-height: 1.6; color: #4a5568; }
-        .mock-settings-card li { margin-bottom: 6px; }
+        /* MathJax 자체 가로/세로 엔진 마진 제로 리셋 */
+        .formula-box mjx-container,
+        #conceptList mjx-container,
+        .concept-card mjx-container {
+            margin: 0 !important;
+            padding: 0 !important;
+            display: inline-block !important;
+        }
 
-        /* 🚨 실전 모의고사 모드 스펙 스타일 */
+        /* CBT 모의고사 실전 모드 스펙 스타일 */
         .mock-paper-box {
-            background: var(--card-bg);
+            background: var(--bg-card);
             padding: 35px;
-            border-radius: 10px;
-            border: 2px solid #cbd5e1;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-md);
+            grid-column: span 2; /* 그리드에서 모의고사는 가로 전체 차지 */
         }
         .mock-opt-btn {
             width: 100%;
@@ -146,25 +199,36 @@
             align-items: center;
             text-align: left;
             padding: 15px 20px;
-            border: 1px solid #cbd5e1;
+            border: 1px solid var(--border);
             border-radius: 8px;
-            background: white;
+            background: var(--bg-card);
             font-size: 1rem;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.15s ease;
         }
         .mock-opt-btn:hover {
-            background: #f1f5f9;
-            border-color: #94a3b8;
+            background: var(--primary-light);
+            border-color: var(--primary);
         }
+
+        .details-list { padding-left: 20px; margin: 8px 0; font-size: 0.9rem; line-height: 1.6; color: var(--text-sub); }
+        .details-list li { margin-bottom: 6px; }
+        .no-data { grid-column: span 2; text-align: center; color: var(--text-sub); padding: 40px; font-weight: 500; font-style: italic; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>⚡ 전기 자격증 등급별 핵심 스코프 학습 플랫폼 ⚡</h1>
-    
+<div class="header">
+    <div class="container header-content">
+        <div class="logo">
+            <div class="logo-icon">⚡</div>
+            <span>전기 마스터 스마트 학습 플랫폼</span>
+        </div>
+    </div>
+</div>
+
+<div class="container main-container">
     <div class="control-panel">
         <div class="select-group">
             <label for="levelSelect">목표 자격증 선택</label>
@@ -193,12 +257,10 @@
             </div>
 
             <div class="widget-card" id="qualificationInfo"></div>
-
             <div class="widget-card" id="mockExamInfo"></div>
         </div>
 
         <div class="content-area" id="conceptList"></div>
-
         <div class="content-area" id="mockExamContainer" style="display: none;"></div>
 
     </div>
@@ -206,7 +268,7 @@
 
 <script>
 // ==========================================================================
-// 마스터 데이터베이스 객체 선언 (수식 및 메타 구조 정밀 매핑 완결판)
+// 마스터 데이터베이스 객체 선언 (원본 데이터 100% 유지)
 // ==========================================================================
 const electricianData = {
   levels: {
@@ -452,257 +514,231 @@ const electricianData = {
 };
 
 const qualificationRequirements = [
-  {
-    grade: "전기기능사",
-    icon: "⚡",
-    summary: "제한 없음 (누구나 응시 가능)",
-    details: [
-      "학력, 경력, 연령, 성별 등 아무런 제한이 없습니다.",
-      "전기 분야 입문자 및 비전공자가 가장 먼저 도전하는 자격증입니다."
-    ]
-  },
-  {
-    grade: "전기산업기사",
-    icon: "⚙️",
-    summary: "전문대졸 또는 2년 이상 경력자",
-    details: [
-      "<strong>기능사 취득 후:</strong> + 실무 경력 1년 이상",
-      "<strong>관련학과 전문대졸:</strong> 졸업자 또는 졸업예정자 (2년제/3년제)",
-      "<strong>관련학과 대학졸:</strong> 1/2 이상 수료자 (4년제 기준 2학년 마침)",
-      "<strong>순수 실무 경력:</strong> 동일/유사 분야 2년 이상"
-    ]
-  },
-  {
-    grade: "전기기사",
-    icon: "🏆",
-    summary: "4년제 대졸 또는 4년 이상 경력자",
-    details: [
-      "<strong>기능사 취득 후:</strong> + 실무 경력 3년 이상",
-      "<strong>산업기사 취득 후:</strong> + 실무 경력 1년 이상",
-      "<strong>관련학과 대학졸:</strong> 졸업자 또는 졸업예정자 (4년제 기준 4학년 재학)",
-      "<strong>관련학과 전문대졸:</strong> 졸업 후 + 실무 경력 1~2년 이상",
-      "<strong>순수 실무 경력:</strong> 동일/유사 분야 4년 이상"
-    ]
-  }
+  { grade: "전기기능사", icon: "⚡", summary: "제한 없음 (누구나 응시 가능)", details: ["학력, 경력, 연령, 성별 등 아무런 제한이 없습니다.", "전기 분야 입문자 및 비전공자가 가장 먼저 도전하는 자격증입니다."] },
+  { grade: "전기산업기사", icon: "⚙️", summary: "전문대졸 또는 2년 이상 경력자", details: ["<strong>기능사 취득 후:</strong> + 실무 경력 1년 이상", "<strong>관련학과 전문대졸:</strong> 졸업자 또는 졸업예정자 (2년제/3년제)", "<strong>관련학과 대학졸:</strong> 1/2 이상 수료자 (4년제 기준 2학년 마침)", "<strong>순수 실무 경력:</strong> 동일/유사 분야 2년 이상"] },
+  { grade: "전기기사", icon: "🏆", summary: "4년제 대졸 또는 4년 이상 경력자", details: ["<strong>기능사 취득 후:</strong> + 실무 경력 3년 이상", "<strong>산업기사 취득 후:</strong> + 실무 경력 1년 이상", "<strong>관련학과 대학졸:</strong> 졸업자 또는 졸업예정자 (4년제 기준 4학년 재학)", "<strong>관련학과 전문대졸:</strong> 졸업 후 + 실무 경력 1~2년 이상", "<strong>순수 실무 경력:</strong> 동일/유사 분야 4년 이상"] }
 ];
 
 const mockExamSettings = {
-  craftsman: {
-    name: "전기기능사 필기 모의고사",
-    timeLimit: 60 * 60,
-    totalQuestions: 60,
-    passingScore: 60,
-    subjects: ['foundation', 'machine', 'regulation']
-  },
-  industrial_engineer: {
-    name: "전기산업기사 필기 모의고사",
-    timeLimit: 150 * 60,
-    totalQuestions: 100,
-    passingScore: 60,
-    subjects: ['electromagnetics', 'power', 'machine', 'circuit', 'regulation']
-  },
-  engineer: {
-    name: "전기기사 필기 모의고사",
-    timeLimit: 150 * 60,
-    totalQuestions: 100,
-    passingScore: 60,
-    subjects: ['electromagnetics', 'power', 'machine', 'circuit', 'control', 'regulation']
-  }
+  craftsman: { name: "전기기능사 필기 모의고사", timeLimit: 60 * 60, totalQuestions: 60, passingScore: 60, subjects: ['foundation', 'machine', 'regulation'] },
+  industrial_engineer: { name: "전기산업기사 필기 모의고사", timeLimit: 150 * 60, totalQuestions: 100, passingScore: 60, subjects: ['electromagnetics', 'power', 'machine', 'circuit', 'regulation'] },
+  engineer: { name: "전기기사 필기 모의고사", timeLimit: 150 * 60, totalQuestions: 100, passingScore: 60, subjects: ['electromagnetics', 'power', 'machine', 'circuit', 'control', 'regulation'] }
 };
 
 // ==========================================================================
 // 비즈니스 로직 및 동적 UI 바인딩 코어 엔진
 // ==========================================================================
 
-// 모의고사 진행용 엔진 런타임 글로벌 상태 변수
+let selectedLevel = 'engineer';
+let selectedCategory = 'all';
+let currentMode = 'written'; 
+
 let mockTimerInterval = null;
 let mockTimeLeft = 0;
 let mockQuestions = [];
 let currentMockIdx = 0;
 let mockScore = 0;
 
-function renderPlatform() {
-  const selectedLevel = document.getElementById("levelSelect") ? document.getElementById("levelSelect").value : "engineer";
-  const selectedMode = document.getElementById("modeSelect") ? document.getElementById("modeSelect").value : "written";
-  
-  const categoryContainer = document.getElementById("categoryList");
-  const conceptContainer = document.getElementById("conceptList");
-  const mockExamContainer = document.getElementById("mockExamContainer");
-  const sidebarSection = document.getElementById("sidebarSection");
-  const mainLayoutStructure = document.getElementById("mainLayoutStructure");
-  const requirementContainer = document.getElementById("qualificationInfo");
-  const mockSettingsContainer = document.getElementById("mockExamInfo");
+document.addEventListener('DOMContentLoaded', () => {
+    initApp();
+});
 
-  // 🚨 [조건 확인 분기] 모의고사(mockexam) 러닝 타임 가독성 최적화 대응 스위치 개설
-  if (selectedMode === 'mockexam') {
-      clearInterval(mockTimerInterval);
-      
-      // 2단 그리드에서 가독성이 깨지므로 메인을 1줄 전체화면(Full) 구조로 확장하고 사이드바 히든
-      if(sidebarSection) sidebarSection.style.display = 'none';
-      if(mainLayoutStructure) mainLayoutStructure.style.gridTemplateColumns = '1fr';
-      if(conceptContainer) conceptContainer.style.display = 'none';
-      
-      if(mockExamContainer) {
-          mockExamContainer.style.display = 'block';
-          initMockExamCore(selectedLevel); // 무작위 문항 구성 시동 호출
-      }
-      return; // 일반 렌더링 로직 강제 조기 종료 인터록
-  }
+function initApp() {
+    const levelSelect = document.getElementById("levelSelect");
+    const modeSelect = document.getElementById("modeSelect");
 
-  // 필기/실기 표준 검토 모드 복원 제어부
-  if(mockExamContainer) mockExamContainer.style.display = 'none';
-  if(conceptContainer) conceptContainer.style.display = 'flex';
-  if(sidebarSection) sidebarSection.style.display = 'flex';
-  if(mainLayoutStructure) {
-      // 768px 미만 미디어 쿼리 방어 연동 복원
-      mainLayoutStructure.style.gridTemplateColumns = window.innerWidth <= 768 ? '1fr' : '320px 1fr';
-  }
+    if (levelSelect) selectedLevel = levelSelect.value;
+    if (modeSelect) currentMode = modeSelect.value;
 
-  // 1. 카테고리(과목) 렌더링 엔진 
-  if (categoryContainer) {
-    categoryContainer.innerHTML = "";
-    const filteredCategories = electricianData.categories.filter(cat => 
-      cat.mode === selectedMode && cat.levels.includes(selectedLevel)
-    );
-    
-    if (filteredCategories.length === 0) {
-      categoryContainer.innerHTML = "<p class='no-data'>활성화된 과목 카테고리가 없습니다.</p>";
-    } else {
-      filteredCategories.forEach(cat => {
-        categoryContainer.innerHTML += `
-          <button class="category-btn" style="border-left: 5px solid ${cat.color};" onclick="filterBySpecificCategory('${cat.id}')">
-            <span>${cat.icon}</span> ${cat.name}
-          </button>
-        `;
-      });
+    if (levelSelect) {
+        levelSelect.addEventListener("change", (e) => {
+            selectedLevel = e.target.value;
+            renderSidebarRequirements();
+            if (currentMode === 'mockexam') {
+                initMockExamCore(selectedLevel);
+            } else {
+                selectedCategory = 'all';
+                renderTabs();
+                renderConcepts();
+            }
+        });
     }
-  }
 
-  // 2. 핵심 개념 리스트 렌더링 엔진
-  if (conceptContainer) {
-    conceptContainer.innerHTML = "";
-    const filteredConcepts = electricianData.concepts.filter(con => {
-      const isLevelMatch = con.levels.includes(selectedLevel);
-      const categoryObj = electricianData.categories.find(c => c.id === con.category);
-      const isModeMatch = categoryObj && categoryObj.mode === selectedMode;
-      return isLevelMatch && isModeMatch;
-    });
+    if (modeSelect) {
+        modeSelect.addEventListener("change", (e) => {
+            currentMode = e.target.value;
+            clearInterval(mockTimerInterval); 
 
-    if (filteredConcepts.length === 0) {
-      conceptContainer.innerHTML = "<p class='no-data'>조건에 맞는 마스터 개념 데이터가 존재하지 않습니다.</p>";
-    } else {
-      filteredConcepts.forEach(con => {
-        conceptContainer.innerHTML += `
-          <div class="concept-card" id="concept-${con.id}">
-            <div class="card-header">
-              <span class="freq-badge freq-${con.frequency}">빈도: ${con.frequency}</span>
-              <h4 class="concept-title">${con.title}</h4>
-            </div>
-            <p class="concept-def">${con.definition}</p>
-            <div class="concept-formula">${con.formula.replace(/\\n/g, '<br>')}</div>
-          </div>
-        `;
-      });
+            const cGrid = document.getElementById("conceptList");
+            const mockContainer = document.getElementById("mockExamContainer");
+            const sidebarSection = document.getElementById("sidebarSection");
+            const mainLayoutStructure = document.getElementById("mainLayoutStructure");
+
+            if (currentMode === 'mockexam') {
+                if (sidebarSection) sidebarSection.style.display = 'none';
+                if (mainLayoutStructure) mainLayoutStructure.style.gridTemplateColumns = '1fr';
+                if (cGrid) {
+                    cGrid.style.display = 'none';
+                    cGrid.style.setProperty('display', 'none', 'important');
+                }
+                if (mockContainer) {
+                    mockContainer.style.display = 'block';
+                    initMockExamCore(selectedLevel);
+                }
+            } else {
+                if (mockContainer) mockContainer.style.display = 'none';
+                if (cGrid) {
+                    cGrid.style.display = 'grid';
+                    cGrid.style.setProperty('display', 'grid', 'important');
+                }
+                if (sidebarSection) sidebarSection.style.display = 'flex';
+                if (mainLayoutStructure) {
+                    mainLayoutStructure.style.gridTemplateColumns = window.innerWidth <= 768 ? '1fr' : '320px 1fr';
+                }
+                
+                selectedCategory = 'all';
+                renderTabs();
+                renderConcepts();
+            }
+        });
     }
-    
-    if (window.MathJax && window.MathJax.typesetPromise) {
-      window.MathJax.typesetPromise();
-    }
-  }
 
-  // 3. 응시 요건 바인딩
-  if (requirementContainer) {
-    requirementContainer.innerHTML = "";
+    renderSidebarRequirements();
+    renderTabs();
+    renderConcepts();
+}
+
+function renderSidebarRequirements() {
+    const requirementContainer = document.getElementById("qualificationInfo");
+    if (!requirementContainer) return;
+
     const currentReq = qualificationRequirements.find(req => {
-      if (selectedLevel === "craftsman") return req.grade === "전기기능사";
-      if (selectedLevel === "industrial_engineer") return req.grade === "전기산업기사";
-      return req.grade === "전기기사";
+        if (selectedLevel === "craftsman") return req.grade === "전기기능사";
+        if (selectedLevel === "industrial_engineer") return req.grade === "전기산업기사";
+        return req.grade === "전기기사";
     });
 
     if (currentReq) {
-      let detailsHtml = currentReq.details.map(d => `<li>${d}</li>`).join("");
-      requirementContainer.innerHTML = `
-        <h5>${currentReq.icon} ${currentReq.grade} 요건</h5>
-        <p style="font-size:0.9rem; margin: 0 0 10px 0;"><strong>요약:</strong> ${currentReq.summary}</p>
-        <ul class="details-list">${detailsHtml}</ul>
-      `;
+        let detailsHtml = currentReq.details.map(d => `<li>${d}</li>`).join("");
+        requirementContainer.innerHTML = `
+            <h5>${currentReq.icon} ${currentReq.grade} 요건</h5>
+            <p style="font-size:0.9rem; margin: 0 0 10px 0;"><strong>요약:</strong> ${currentReq.summary}</p>
+            <ul class="details-list">${detailsHtml}</ul>
+        `;
     }
-  }
-
-  // 4. 모의고사 규칙 바인딩
-  if (mockSettingsContainer) {
-    mockSettingsContainer.innerHTML = "";
-    const settings = mockExamSettings[selectedLevel];
-
-    if (settings) {
-      mockSettingsContainer.innerHTML = `
-        <h5>📋 모의고사 스펙</h5>
-        <ul>
-          <li><strong>시험 시간:</strong> ${settings.timeLimit / 60}분</li>
-          <li><strong>문항 수:</strong> ${settings.totalQuestions}문항</li>
-          <li><strong>합격 기준:</strong> ${settings.passingScore}점 이상</li>
-        </ul>
-      `;
-    }
-  }
 }
 
-// 특정 과목 카테고리 타겟팅 필터 함수
-function filterBySpecificCategory(categoryId) {
-  const selectedLevel = document.getElementById("levelSelect") ? document.getElementById("levelSelect").value : "engineer";
-  const conceptContainer = document.getElementById("conceptList");
-  
-  if (!conceptContainer) return;
-  
-  conceptContainer.innerHTML = "";
-  const categoryFiltered = electricianData.concepts.filter(con => 
-    con.category === categoryId && con.levels.includes(selectedLevel)
-  );
+function renderTabs() {
+    const categoryContainer = document.getElementById("categoryList");
+    const mockSettingsContainer = document.getElementById("mockExamInfo");
+    if (!categoryContainer) return;
 
-  if (categoryFiltered.length === 0) {
-    conceptContainer.innerHTML = "<p class='no-data'>해당 과목에 등록된 개념이 없습니다.</p>";
-  } else {
-    categoryFiltered.forEach(con => {
-      conceptContainer.innerHTML += `
-        <div class="concept-card" id="concept-${con.id}">
-          <div class="card-header">
-            <span class="freq-badge freq-${con.frequency}">빈도: ${con.frequency}</span>
-            <h4 class="concept-title">${con.title}</h4>
-          </div>
-          <p class="concept-def">${con.definition}</p>
-          <div class="concept-formula">${con.formula.replace(/\\n/g, '<br>')}</div>
-        </div>
-      `;
+    categoryContainer.innerHTML = "";
+    const filteredCategories = electricianData.categories.filter(cat => 
+        cat.mode === currentMode && cat.levels.includes(selectedLevel)
+    );
+    
+    if (filteredCategories.length === 0) {
+        categoryContainer.innerHTML = "<p class='no-data'>활성화된 과목 카테고리가 없습니다.</p>";
+    } else {
+        categoryContainer.innerHTML += `
+            <button class="category-btn" style="border-left: 5px solid #64748b;" onclick="filterBySpecificCategory('all')">
+                <span>📚</span> 전체 보기
+            </button>
+        `;
+        filteredCategories.forEach(cat => {
+            categoryContainer.innerHTML += `
+                <button class="category-btn" style="border-left: 5px solid ${cat.color};" onclick="filterBySpecificCategory('${cat.id}')">
+                    <span>${cat.icon}</span> ${cat.name}
+                </button>
+            `;
+        });
+    }
+
+    if (mockSettingsContainer) {
+        const settings = mockExamSettings[selectedLevel];
+        if (settings) {
+            mockSettingsContainer.innerHTML = `
+                <h5>📋 모의고사 스펙</h5>
+                <ul class="details-list" style="padding-left:15px; margin:0;">
+                    <li><strong>시험 시간:</strong> ${settings.timeLimit / 60}분</li>
+                    <li><strong>문항 수:</strong> ${settings.totalQuestions}문항</li>
+                    <li><strong>합격 기준:</strong> ${settings.passingScore}점 이상</li>
+                </ul>
+            `;
+        }
+    }
+}
+
+function renderConcepts() {
+    const conceptContainer = document.getElementById("conceptList");
+    if (!conceptContainer) return;
+
+    conceptContainer.innerHTML = "";
+    const filteredConcepts = electricianData.concepts.filter(con => {
+        const isLevelMatch = con.levels.includes(selectedLevel);
+        const categoryObj = electricianData.categories.find(c => c.id === con.category);
+        const isModeMatch = categoryObj && categoryObj.mode === currentMode;
+        const isCategoryMatch = selectedCategory === 'all' || con.category === selectedCategory;
+        return isLevelMatch && isModeMatch && isCategoryMatch;
     });
-  }
 
-  if (window.MathJax && window.MathJax.typesetPromise) {
-    window.MathJax.typesetPromise();
-  }
+    if (filteredConcepts.length === 0) {
+        conceptContainer.innerHTML = "<p class='no-data'>조건에 맞는 마스터 개념 데이터가 존재하지 않습니다.</p>";
+        return;
+    }
+
+    filteredConcepts.forEach(con => {
+        const summaryBullets = [
+            "국가기술검정 필기/실기 시험 단골 출제 키워드 스코프",
+            "공학용 계산기 수식 인자값 대입 및 단위 환산 절대 주의",
+            "주관식 단답형 정답 마킹을 위한 필수 암기 핵심 마일스톤"
+        ];
+
+        conceptContainer.innerHTML += `
+            <div class="concept-card" id="concept-${con.id}">
+                <div class="card-header">
+                    <span class="freq-badge freq-${con.frequency}">빈도: ${con.frequency}</span>
+                    <h4 class="concept-title">${con.title}</h4>
+                </div>
+                <p class="concept-def">${con.definition}</p>
+                
+                <ul class="concept-bullets">
+                    ${summaryBullets.map(bullet => `<li>${bullet}</li>`).join('')}
+                </ul>
+                
+                ${con.formula ? `<div class="formula-box">${con.formula.replace(/\\n/g, '<br/>')}</div>` : ''}
+            </div>
+        `;
+    });
+    
+    if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise();
+    }
 }
 
-// 🚨 모의고사 시험 구동 코어 핵심 엔진 로직 세트
+function filterBySpecificCategory(categoryId) {
+    selectedCategory = categoryId;
+    renderConcepts();
+}
+
 function initMockExamCore(gradeKey) {
     const config = mockExamSettings[gradeKey];
-    if(!config) return;
+    if (!config) return;
 
-    // 현재 선택한 등급 조건에 맞는 과목 문항 필터 후 무작위 추출 산출식
     const matchPool = electricianData.concepts.filter(c => config.subjects.includes(c.category));
-    
-    // 모의고사 전용 가독성을 확보하기 위해 디버깅/실전 밸런싱 절삭 (최대 가용 문항 수 조율 자동화)
-    const finalTargetCount = Math.min(config.totalQuestions, matchPool.length, 20); // 풀 데이터 수에 맞게 유동 조절
+    const finalCount = Math.min(config.totalQuestions, matchPool.length, 20);
 
-    mockQuestions = matchPool.sort(() => 0.5 - Math.random()).slice(0, finalTargetCount);
+    mockQuestions = matchPool.sort(() => 0.5 - Math.random()).slice(0, finalCount);
     currentMockIdx = 0;
     mockScore = 0;
     mockTimeLeft = config.timeLimit;
 
-    // 인터벌 시동 연동
     mockTimerInterval = setInterval(() => {
         mockTimeLeft--;
-        if(mockTimeLeft <= 0) {
+        if (mockTimeLeft <= 0) {
             clearInterval(mockTimerInterval);
-            alert('시험 제한시간이 종료되었습니다! 즉시 답안지를 제출합니다.');
+            alert('시험 제한시간이 만료되었습니다. 즉시 답안지를 회수합니다.');
             renderMockResultScreen();
         }
         updateMockTimerUI();
@@ -713,17 +749,16 @@ function initMockExamCore(gradeKey) {
 
 function updateMockTimerUI() {
     const el = document.getElementById('mockClock');
-    if(!el) return;
+    if (!el) return;
     const min = Math.floor(mockTimeLeft / 60);
     const sec = mockTimeLeft % 60;
     el.innerText = `⏳ 남은 시간: ${min}분 ${sec}초`;
 }
 
-// 실전 CBT형 와이드 가독성 전용 문제 출력 빌더
 function renderMockQuestionScreen() {
     const container = document.getElementById('mockExamContainer');
     const q = mockQuestions[currentMockIdx];
-    if(!container || !q) return;
+    if (!container || !q) return;
 
     const pool = electricianData.concepts.filter(c => c.id !== q.id);
     const wrongAnswers = pool.sort(() => 0.5 - Math.random()).slice(0, 3).map(c => c.title);
@@ -736,37 +771,33 @@ function renderMockQuestionScreen() {
     container.innerHTML = `
         <div class="mock-paper-box">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #e2e8f0; padding-bottom:15px; margin-bottom:20px;">
-                <span style="font-weight:bold; color:var(--primary-color); font-size:1.2rem;"><i class="fas fa-edit"></i> CBT 국가기술자격 실전 모의고사 실전장</span>
+                <span style="font-weight:bold; color:var(--primary); font-size:1.2rem;"><i class="fas fa-edit"></i> CBT 국가기술자격 실전 모의고사 수험실</span>
                 <span id="mockClock" style="font-weight:bold; color:#e53e3e; background:#fff5f5; padding:6px 12px; border-radius:6px;">⏳ 남은 시간: ${min}분 ${sec}초</span>
             </div>
             
-            <div style="color:var(--text-muted); font-weight:bold; margin-bottom:8px; font-size:0.9rem;">문항 번호: ${currentMockIdx + 1} / ${mockQuestions.length}</div>
-            <div style="font-size:1.3rem; font-weight:bold; line-height:1.6; color:#1a202c; margin-bottom:30px; word-break:keep-all;">
+            <div style="color:var(--text-sub); font-weight:bold; margin-bottom:8px; font-size:0.9rem;">문항 번호: ${currentMockIdx + 1} / ${mockQuestions.length}</div>
+            <div style="font-size:1.3rem; font-weight:bold; line-height:1.6; color:var(--text-main); margin-bottom:30px; word-break:keep-all;">
                 ${q.definition}
             </div>
             
             <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
                 ${shuffledOptions.map((opt, index) => `
                     <button class="mock-opt-btn" data-answer="${opt}">
-                        <span style="font-weight:bold; color:var(--primary-color); margin-right:12px; font-size:1.1rem;">${numberIcons[index]}</span>
-                        <span style="font-weight:500;">${opt}</span>
+                        <span style="font-weight:bold; color:var(--primary); margin-right:12px; font-size:1.1rem;">${numberIcons[index]}</span>
+                        <span style="font-weight:500; color:var(--text-main);">${opt}</span>
                     </button>
                 `).join('')}
             </div>
         </div>
     `;
 
-    // 보기 버튼들에 클릭 이벤트 바인딩
     container.querySelectorAll('.mock-opt-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const userChoice = btn.getAttribute('data-answer');
-            if(userChoice === q.title) {
-                mockScore++;
-            }
+            if (userChoice === q.title) mockScore++;
 
-            // 인덱스 증감 후 라우팅 디스패치
             currentMockIdx++;
-            if(currentMockIdx < mockQuestions.length) {
+            if (currentMockIdx < mockQuestions.length) {
                 renderMockQuestionScreen();
             } else {
                 clearInterval(mockTimerInterval);
@@ -776,7 +807,6 @@ function renderMockQuestionScreen() {
     });
 }
 
-// 시험 성적 평점 환산 화면 출력기
 function renderMockResultScreen() {
     const container = document.getElementById('mockExamContainer');
     const scorePct = Math.round((mockScore / mockQuestions.length) * 100);
@@ -785,37 +815,24 @@ function renderMockResultScreen() {
     container.innerHTML = `
         <div class="mock-paper-box" style="text-align:center; padding:50px 20px;">
             <div style="font-size:4.5rem; margin-bottom:15px;">${isPass ? '🎉' : '😰'}</div>
-            <h2 style="font-size:1.8rem; font-weight:bold; color:#1a202c; margin-bottom:10px;">
-                ${isPass ? '모의고사 합격 기준 달성!' : '불합격 (점수 미달)'}
+            <h2 style="font-size:1.8rem; font-weight:bold; color:var(--text-main); margin-bottom:10px;">
+                ${isPass ? '모의고사 합격 기준 충족!' : '불합격 (커트라인 미달)'}
             </h2>
-            <p style="font-size:1.2rem; color:#4a5568; margin-bottom:30px;">
-                채점 결과 점수는 <strong style="font-size:1.5rem; color:${isPass ? '#2f855a' : '#c53030'}">${scorePct}점</strong> 입니다. (${mockQuestions.length}문항 중 ${mockScore}개 정답)
+            <p style="font-size:1.2rem; color:var(--text-sub); margin-bottom:30px;">
+                최종 백분율 점수: <strong style="font-size:1.5rem; color:${isPass ? '#2f855a' : '#c53030'}">${scorePct}점</strong> (${mockQuestions.length}문항 중 ${mockScore}개 취득)
             </p>
-            <button onclick="renderPlatform()" style="background:var(--primary-color); color:white; border:none; padding:12px 28px; border-radius:6px; font-size:1rem; font-weight:bold; cursor:pointer; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
-                오답 검토 및 메인으로 복귀
+            <button onclick="location.reload()" style="background:var(--primary); color:white; border:none; padding:12px 28px; border-radius:6px; font-size:1rem; font-weight:bold; cursor:pointer; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+                답안지 반납 및 초기 화면으로 리로드
             </button>
         </div>
     `;
 }
 
-// DOM 생태계 초기 로드 즉시 인터페이스 매핑 가동
-document.addEventListener("DOMContentLoaded", () => {
-  const levelSelect = document.getElementById("levelSelect");
-  const modeSelect = document.getElementById("modeSelect");
-  
-  if (levelSelect) levelSelect.addEventListener("change", renderPlatform);
-  if (modeSelect) modeSelect.addEventListener("change", renderPlatform);
-  
-  // 리사이즈 시 화면 밀림 방어 코드 연동
-  window.addEventListener('resize', () => {
-      const mainLayoutStructure = document.getElementById("mainLayoutStructure");
-      if(mainLayoutStructure && currentMode !== 'mockexam') {
-          mainLayoutStructure.style.gridTemplateColumns = window.innerWidth <= 768 ? '1fr' : '320px 1fr';
-      }
-  });
-
-  // 최초 런타임 구동
-  renderPlatform();
+window.addEventListener('resize', () => {
+    const mainLayoutStructure = document.getElementById("mainLayoutStructure");
+    if (mainLayoutStructure && currentMode !== 'mockexam') {
+        mainLayoutStructure.style.gridTemplateColumns = window.innerWidth <= 768 ? '1fr' : '320px 1fr';
+    }
 });
 </script>
 </body>
