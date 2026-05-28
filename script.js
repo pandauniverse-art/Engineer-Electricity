@@ -161,7 +161,7 @@ function renderConcepts() {
                     <h4 class="concept-title">${con.title}</h4>
                 </div>
                 <p class="concept-def">${con.definition}</p>
-                ${con.formula ? `<div class="formula-box" style="background:var(--primary-light); padding:6px 15px; border-radius:8px; text-align:center; margin-top:5px; font-size:1rem;">${con.formula.replace(/\\n/g, '<br/>')}</div>` : ''}
+               ${con.formula ? `<div class="formula-box" style="background:var(--primary-light); padding:4px 15px; border-radius:8px; text-align:center; margin-top:4px; font-size:1rem; --mjx-margin: 0 !important;"><style>.formula-box mjx-container{margin:0 !important; padding:0 !important;}</style>${con.formula.replace(/\\n/g, '<br/>')}</div>` : ''}
             </div>
         `;
     });
