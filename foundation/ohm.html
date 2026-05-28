@@ -19,7 +19,7 @@
 }
 
         /* 메인 실험 키트 레이아웃 (회로 70% : 컨트롤 30%) */
-   .lab-kit {
+.lab-kit {
     background: #141b2d;
     border: 1px solid #1f293d;
     border-radius: 20px;
@@ -28,14 +28,15 @@
     max-width: 1180px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: minmax(620px, 2fr) minmax(280px, 0.8fr);
-    gap: 20px;
+    grid-template-columns: minmax(0, 2fr) 320px;
+    gap: 18px;
     box-shadow: 0 12px 24px rgba(0,0,0,0.35);
+    align-items: stretch;
 }
 
-    @media (max-width: 760px) {
-    .lab-kit { 
-        grid-template-columns: 1fr; 
+@media (max-width: 700px) {
+    .lab-kit {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -44,7 +45,7 @@
     background: #090d16;
     border: 2px dashed #1f293d;
     border-radius: 16px;
-    height: 360px;
+  height: 320px;
     min-width: 0;
     position: relative;
     overflow: hidden;
@@ -145,12 +146,13 @@
 }
 
         /* 🚨 4. 정보 및 컨트롤 영역 (30% 비중) */
-        .control-section {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            gap: 20px;
-        }
+   .control-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 16px;
+    min-width: 0;
+}
 
         .panel-header {
             font-size: 1.1rem;
@@ -165,10 +167,10 @@
             background: #090d16;
             border: 1px solid #1f293d;
             border-radius: 12px;
-            padding: 15px;
+            padding: 12px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
         .data-row {
             display: flex;
@@ -184,7 +186,7 @@
         .slider-wrapper {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 12px;
         }
         .slider-group {
             display: flex;
