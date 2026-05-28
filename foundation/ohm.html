@@ -1,1 +1,276 @@
 
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>옴의 법칙 인터랙티브 실험실</title>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+        * { margin: 0; padding: 0; box-sizing: border-box !important; font-family: 'Pretendard', sans-serif; }
+        body { background-color: #f5f7fa; color: #1e293b; padding: 15px; overflow-x: hidden; }
+
+        .interactive-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #e2e8f0;
+            max-width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #4f46e5;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 2px solid #e0e7ff;
+            padding-bottom: 10px;
+        }
+
+        /* 메인 회로 시각화 패널 (터짐 방지 고정 래퍼) */
+        .visual-panel {
+            background: #0f172a;
+            border-radius: 12px;
+            height: 180px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        /* 중앙 전구 오브젝트 */
+        .light-bulb {
+            width: 70px;
+            height: 70px;
+            background: #334155;
+            border-radius: 50%;
+            position: relative;
+            transition: background 0.15s ease, box-shadow 0.15s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8rem;
+            z-index: 2;
+        }
+        .light-bulb::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            width: 24px;
+            height: 10px;
+            background: #64748b;
+            border-radius: 2px;
+        }
+
+        /* 무한 루프 전선 트랙 */
+        .circuit-line {
+            position: absolute;
+            width: 85%;
+            height: 4px;
+            background: #334155;
+            z-index: 1;
+        }
+
+        /* 전류 파티클 도트 */
+        .current-dot {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #f59e0b;
+            border-radius: 50%;
+            top: -2px;
+            left: 0;
+            animation: flow linear infinite;
+            will-change: transform;
+        }
+
+        /* 가로 사이즈에 유연하게 대응하는 GPU 가속 키프레임 */
+        @keyframes flow {
+            0% { transform: translateX(0); opacity: 0; }
+            5% { opacity: 1; }
+            95% { opacity: 1; }
+            100% { transform: translateX(var(--container-width, 600px)); opacity: 0; }
+        }
+
+        /* 계측 대시보드 */
+        .display-dashboard {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            width: 100%;
+        }
+        .data-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 0;
+        }
+        .data-box label { font-size: 0.8rem; color: #64748b; font-weight: 600; display: block; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .data-box span { font-size: 1.25rem; font-weight: 800; color: #1e293b; word-break: break-all; }
+        .data-box .active-i { color: #ef4444; }
+
+        /* 컨트롤 슬라이더 구역 */
+        .control-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            width: 100%;
+        }
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 100%;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        .slider-group input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e2e8f0;
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+        .slider-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+        .slider-group input[type="range"]::-webkit-slider-thumb:active {
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+<body>
+
+<div class="interactive-card">
+    <div class="section-title">📐 옴의 법칙 실시간 시각 실험실 (Ohm's Law)</div>
+    
+    <div class="visual-panel" id="panelWrapper">
+        <div class="circuit-line" id="wireLine"></div>
+        <div class="light-bulb" id="bulbObj">💡</div>
+    </div>
+
+    <div class="display-dashboard">
+        <div class="data-box">
+            <label>입력 전압 (V)</label>
+            <span id="vNum">5.0</span><b style="font-size: 0.9rem;"> V</b>
+        </div>
+        <div class="data-box">
+            <label>회로 저항 (R)</label>
+            <span id="rNum">10</span><b style="font-size: 0.9rem;"> Ω</b>
+        </div>
+        <div class="data-box">
+            <label>출력 전류 (I = V/R)</label>
+            <span id="iNum" class="active-i">0.50</span><b style="font-size: 0.9rem;"> A</b>
+        </div>
+    </div>
+
+    <div class="control-wrapper">
+        <div class="slider-group">
+            <div class="slider-label">
+                <span>🔋 전압 제어 (Voltage)</span>
+                <span style="color:#4f46e5;"><span id="vLabel">5.0</span> V</span>
+            </div>
+            <input type="range" id="vSlider" min="1" max="12" step="0.5" value="5">
+        </div>
+
+        <div class="slider-group">
+            <div class="slider-label">
+                <span>🚧 저항 제어 (Resistance)</span>
+                <span style="color:#64748b;"><span id="rLabel">10</span> Ω</span>
+            </div>
+            <input type="range" id="rSlider" min="1" max="50" step="1" value="10">
+        </div>
+    </div>
+</div>
+
+<script>
+    const vSlider = document.getElementById('vSlider');
+    const rSlider = document.getElementById('rSlider');
+    const vNum = document.getElementById('vNum');
+    const rNum = document.getElementById('rNum');
+    const iNum = document.getElementById('iNum');
+    const vLabel = document.getElementById('vLabel');
+    const rLabel = document.getElementById('rLabel');
+    const bulbObj = document.getElementById('bulbObj');
+    const panelWrapper = document.getElementById('panelWrapper');
+    const wireLine = document.getElementById('wireLine');
+
+    function updateCircuit() {
+        const v = parseFloat(vSlider.value);
+        const r = parseFloat(rSlider.value);
+        const i = v / r;
+
+        // 인터페이스 텍스트 갱신
+        vNum.innerText = v.toFixed(1);
+        vLabel.innerText = v.toFixed(1);
+        rNum.innerText = r;
+        rLabel.innerText = r;
+        iNum.innerText = i.toFixed(2);
+
+        // 1. 전류의 양에 비례한 전구 필터 이펙트 수치 동화
+        const brightness = Math.min(i * 120, 200); 
+        const opacity = Math.min(0.2 + (i * 0.8), 1);
+        
+        if (i > 0.05) {
+            bulbObj.style.background = `rgba(245, 158, 11, ${opacity})`;
+            bulbObj.style.boxShadow = `0 0 ${brightness / 2}px ${brightness / 4}px rgba(245, 158, 11, 0.6)`;
+        } else {
+            bulbObj.style.background = '#334155';
+            bulbObj.style.boxShadow = 'none';
+        }
+
+        // 2. 가로폭 기반 실시간 전류 파티클 제어 (DOM 폭파 방지용)
+        document.querySelectorAll('.current-dot').forEach(el => el.remove());
+
+        const currentLineWidth = wireLine.offsetWidth;
+        // 애니메이션 이동 한계 거리를 CSS 변수로 등록하여 하드웨어 가속 유지
+        wireLine.style.setProperty('--container-width', `${currentLineWidth}px`);
+
+        const dotCount = Math.min(Math.ceil(i * 12), 10); // 최대 입자수 10개 엄격 제한 (렉 방지)
+        const duration = Math.max(0.3, 3.5 - (i * 6)); // 전류가 셀수록 속도 증가
+
+        for(let k = 0; k < dotCount; k++) {
+            const dot = document.createElement('div');
+            dot.className = 'current-dot';
+            dot.style.animationDelay = `${k * (duration / dotCount)}s`;
+            dot.style.animationDuration = `${duration}s`;
+            wireLine.appendChild(dot);
+        }
+    }
+
+    vSlider.addEventListener('input', updateCircuit);
+    rSlider.addEventListener('input', updateCircuit);
+    
+    // 리사이즈 시 도트 트랙 이동거리 보정 연동
+    window.addEventListener('resize', updateCircuit);
+
+    // Dom 초기 가동 시 렌더링 동화 타이밍 세팅
+    window.addEventListener('load', () => {
+        setTimeout(updateCircuit, 100);
+    });
+</script>
+</body>
+</html>
