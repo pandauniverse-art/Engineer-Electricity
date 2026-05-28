@@ -248,13 +248,21 @@
     <div class="control-panel">
         <div class="select-group">
             <label for="levelSelect">목표 자격증 선택</label>
-            <select id="levelSelect">
-                <option value="foundation">🌱 시각적 전기기초 (인터랙션)</option>
-                <option value="craftsman">전기기능사</option>
-                <option value="industrial_engineer">전기산업기사</option>
-                <option value="engineer" selected>전기기사</option>
-            </select>
-        </div>
+          <select id="levelSelect">
+    <option value="foundation">🌱 시각적 전기기초 (실험실)</option> <option value="craftsman">전기기능사</option>
+    <option value="industrial_engineer">전기산업기사</option>
+    <option value="engineer" selected>전기기사</option>
+</select>
+
+<div class="main-layout" id="mainLayoutStructure">
+    <div class="sidebar" id="sidebarSection"> ... </div>
+    <div class="content-area" id="conceptList"></div>
+    <div class="content-area" id="mockExamContainer" style="display: none;"></div>
+    
+    <div class="content-area" id="foundationContainer" style="display: none; grid-column: 1 / -1; width: 100%; min-width: 0;">
+        <iframe id="foundationFrame" src="" style="width: 100%; border: none; min-height: 580px; overflow: hidden;" scrolling="no"></iframe>
+    </div>
+</div>
         <div class="select-group">
             <label for="modeSelect">학습 검토 모드</label>
             <select id="modeSelect">
