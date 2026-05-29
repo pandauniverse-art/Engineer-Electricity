@@ -58,16 +58,18 @@
         @keyframes ohmFlow { 0% { left: 0%; top: 100%; opacity: 0; } 5% { opacity: 1; } 25% { left: 0%; top: 0%; } 50% { left: 100%; top: 0%; } 75% { left: 100%; top: 100%; } 95% { opacity: 1; } 100% { left: 0%; top: 100%; opacity: 0; } }
 
         /* ========================================================
-           [PART 2. 교류 파형 오실로스코프 전용]
+           [PART 2. 교류 파형 오실로스코프 전용 (JS 물리 동기화)]
            ======================================================== */
-        #acStage { height: 130px; display: flex; justify-content: center; align-items: center; }
+        #acStage { height: 110px; display: flex; justify-content: center; align-items: center; }
         .ac-wire { position: absolute; width: 75%; height: 4px; background: #1e293b; z-index: 1; }
         .ac-gen { position: absolute; left: 12.5%; top: 50%; transform: translate(-50%, -50%); background: #3b82f6; padding: 10px; border-radius: 50%; font-size: 1.1rem; font-weight: 800; z-index: 5; border: 2px solid #1d4ed8; box-shadow: 0 0 12px rgba(59, 130, 246, 0.4); }
-        .ac-bulb { position: absolute; right: 12.5%; top: 50%; transform: translate(50%, -50%); width: 54px; height: 54px; background: #1f293d; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.4rem; z-index: 5; border: 2px solid #334155; will-change: background, box-shadow, transform; transition: transform 0.05s ease; }
-        .ac-chart { background: #040710; border: 1px solid #1f293d; border-radius: 16px; height: 180px; position: relative; width: 100%; margin-top: 12px; }
+        .ac-bulb { position: absolute; right: 12.5%; top: 50%; transform: translate(50%, -50%); width: 54px; height: 54px; background: #1f293d; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.4rem; z-index: 5; border: 2px solid #334155; will-change: background, box-shadow, transform; }
+        .ac-chart { background: #040710; border: 1px solid #1f293d; border-radius: 16px; height: 220px; position: relative; width: 100%; margin-top: 12px; }
         #scopeCanvas { width: 100%; height: 100%; display: block; }
-        .ac-particle { position: absolute; width: 12px; height: 6px; background: #f59e0b; border-radius: 50%; box-shadow: 0 0 12px 2px #f59e0b; z-index: 4; top: -1px; left: 0; animation: acOscillate linear infinite; animation-duration: var(--ac-period, 1s); will-change: transform; }
-        @keyframes acOscillate { 0% { transform: translateX(0); } 25% { transform: translateX(var(--track-width, 300px)); } 50% { transform: translateX(0); } 75% { transform: translateX(calc(var(--track-width, 300px) * -1)); } 100% { transform: translateX(0); } }
+        
+        /* JS 하드웨어 가속 트랜스폼으로 실시간 제어되는 입자 */
+        .ac-particle { position: absolute; width: 10px; height: 10px; background: #f59e0b; border-radius: 50%; box-shadow: 0 0 10px 2px #f59e0b; z-index: 4; top: -3px; will-change: transform; pointer-events: none; }
+        
         .wave-color-sin { color: #3b82f6 !important; }
         .wave-color-cos { color: #10b981 !important; }
 
@@ -76,13 +78,8 @@
            ======================================================== */
         #flStage { height: 360px; display: flex; justify-content: center; align-items: center; background: #030712; box-shadow: inset 0 0 50px rgba(0,0,0,0.8); position: relative; }
         #threeCanvas { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 2; outline: none; }
-        
-        /* 3D 캔버스 위에 띄워질 동적 HTML 텍스트 라벨 */
         .fl-label { position: absolute; font-weight: 800; font-size: 1rem; padding: 4px 8px; border-radius: 6px; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.2); z-index: 3; pointer-events: none; transform: translate(-50%, -50%); backdrop-filter: blur(4px); transition: opacity 0.2s; }
-        #lbl-B { color: #10b981; }
-        #lbl-I { color: #3b82f6; }
-        #lbl-F { color: #ef4444; }
-
+        #lbl-B { color: #10b981; } #lbl-I { color: #3b82f6; } #lbl-F { color: #ef4444; }
         .fl-btn-group { display: flex; gap: 10px; margin-top: 5px; }
         .fl-btn { flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: #94a3b8; font-weight: bold; cursor: pointer; transition: all 0.2s; }
         .fl-btn.active.mag { background: #10b981; color: white; border-color: #047857; box-shadow: 0 0 10px rgba(16,185,129,0.3); }
@@ -120,11 +117,15 @@
 
 <div class="lab-kit">
     <div style="display: flex; flex-direction: column; width: 100%; min-width: 0;">
-        <div class="circuit-section" id="acStage"><div class="ac-wire" id="acWireTrack"></div><div class="ac-gen">∼</div><div class="ac-bulb" id="acBulbCore">💡</div></div>
+        <div class="circuit-section" id="acStage">
+            <div class="ac-wire" id="acWireTrack"></div>
+            <div class="ac-gen">∼</div>
+            <div class="ac-bulb" id="acBulbCore">💡</div>
+        </div>
         <div class="ac-chart"><canvas id="scopeCanvas"></canvas></div>
     </div>
     <div class="control-panel">
-        <div><div class="panel-header">📈 02. 정현파 파형 분석 모듈</div><p class="panel-sub">사인(기본)과 코사인(위상차) 파형에 따른 교류 진동을 분석합니다.</p></div>
+        <div><div class="panel-header">📈 02. 정현파 원형 궤적 분석 모듈</div><p class="panel-sub">왼쪽 원의 회전 성분이 어떻게 정현파 교류 파형으로 추출되는지 직관적으로 매핑 분석합니다.</p></div>
         <div class="mini-display">
             <div class="data-row"><span>순시 전압 v(t)</span><span><strong id="ac_sinText" class="wave-color-sin">0.00</strong> V</span></div>
             <div class="data-row"><span>위상 전압 v_θ(t)</span><span><strong id="ac_cosText" class="wave-color-cos">0.00</strong> V</span></div>
@@ -154,21 +155,13 @@
         <div class="fl-label" id="lbl-I">중지: 전류(I)</div>
         <div class="fl-label" id="lbl-F">엄지: 힘(F)</div>
     </div>
-
     <div class="control-panel">
-        <div>
-            <div class="panel-header" style="color: #fcd34d;">🖐️ 03. 3D 플레밍의 왼손 법칙 (모터)</div>
-            <p class="panel-sub">버튼을 눌러 3차원 공간에서 플레밍의 왼손(F, B, I) 축이 회전하며 물리적으로 도출되는 힘의 방향을 확인하세요.</p>
-        </div>
-
+        <div><div class="panel-header" style="color: #fcd34d;">🖐️ 03. 3D 플레밍의 왼손 법칙 (모터)</div><p class="panel-sub">버튼을 눌러 3차원 공간에서 플레밍의 왼손(F, B, I) 축이 회전하며 물리적으로 도출되는 힘의 방향을 확인하세요.</p></div>
         <div class="mini-display">
             <div class="data-row"><span>자기장 (B)</span><span><strong id="fl_bText" style="color:#10b981;">N ➔ S (Right)</strong></span></div>
             <div class="data-row"><span>전류 (I)</span><span><strong id="fl_iText" style="color:#3b82f6;">IN (화면 안쪽)</strong></span></div>
-            <div class="data-row" style="border-top:1px dashed #1f293d; padding-top:6px; margin-top:2px;">
-                <span>도출된 힘 (F)</span><span><strong id="fl_fText" style="color:#ef4444;">DOWN (아래로 튕김)</strong></span>
-            </div>
+            <div class="data-row" style="border-top:1px dashed #1f293d; padding-top:6px; margin-top:2px;"><span>도출된 힘 (F)</span><span><strong id="fl_fText" style="color:#ef4444;">DOWN (아래로 튕김)</strong></span></div>
         </div>
-
         <div class="slider-wrapper">
             <div class="slider-group">
                 <div class="slider-meta"><span style="color:#10b981;">🧲 검지: 자기장 (B) 방향</span></div>
@@ -190,7 +183,7 @@
 
 <script>
     // ==========================================================================
-    // [1] 옴의 법칙 런타임
+    // [1] 옴의 법칙 런타임 제어
     // ==========================================================================
     const ohm_vRange = document.getElementById('ohm_vRange'), ohm_rRange = document.getElementById('ohm_rRange');
     const ohmStage = document.getElementById('ohmStage'), ohmLoop = document.getElementById('ohmLoop'), ohmBulbCore = document.getElementById('ohmBulbCore');
@@ -200,6 +193,7 @@
         document.getElementById('ohm_vText').innerText = v.toFixed(1); document.getElementById('ohm_vVal').innerText = v.toFixed(1) + ' V';
         document.getElementById('ohm_rText').innerText = r; document.getElementById('ohm_rVal').innerText = r + ' Ω';
         document.getElementById('ohm_iText').innerText = i.toFixed(2);
+        document.getElementById('ohmResCore').innerText = `🚧 ${r}Ω`;
         
         const vc = Math.min(i, 15), alpha = Math.min(0.1 + (vc * 0.15), 1), glow = Math.min(10 + (vc * 12), 150);
         ohmBulbCore.style.background = `rgba(245, 158, 11, ${alpha})`;
@@ -221,12 +215,14 @@
     ohm_vRange.addEventListener('input', updateOhm); ohm_rRange.addEventListener('input', updateOhm);
 
     // ==========================================================================
-    // [2] 교류 파형(AC) 오실로스코프 런타임
+    // [2] 교류 파형(AC) 오실로스코프 + 원 운동 매핑 런타임 (물리 동기화)
     // ==========================================================================
     const ac_vmRange = document.getElementById('ac_vmRange'), ac_fRange = document.getElementById('ac_fRange'), ac_pRange = document.getElementById('ac_pRange');
-    const acStage = document.getElementById('acStage'), acWireTrack = document.getElementById('acWireTrack'), acBulbCore = document.getElementById('acBulbCore');
+    const acWireTrack = document.getElementById('acWireTrack'), acBulbCore = document.getElementById('acBulbCore');
     const canvas = document.getElementById('scopeCanvas'), ctx = canvas.getContext('2d');
     let timeTicker = 0;
+
+    function resizeCanvas() { canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight; }
 
     function renderAcLoop() {
         const Vm = parseFloat(ac_vmRange.value), freq = parseFloat(ac_fRange.value), phaseRad = (parseFloat(ac_pRange.value) * Math.PI) / 180;
@@ -235,42 +231,97 @@
         document.getElementById('ac_rmsText').innerText = (Vm / Math.sqrt(2)).toFixed(1) + ' V';
         document.getElementById('ac_pIndicator').innerText = ac_pRange.value + '°';
 
-        acStage.style.setProperty('--track-width', `${acWireTrack.offsetWidth * 0.38}px`);
-        acStage.style.setProperty('--ac-period', `${1 / freq}s`);
-
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         const cy = canvas.height / 2, w = canvas.width;
-        ctx.strokeStyle = '#1f293d'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
-
-        timeTicker += 0.015 * freq;
+        
+        // 🚨 타임 티커 증감 계수를 0.015 -> 0.0035로 대폭 축소하여 차분하고 명확한 그래픽 가독성 구현
+        timeTicker += 0.0035 * freq;
         const currentAngle = 2 * Math.PI * timeTicker;
-        const iSin = Vm * Math.sin(currentAngle), iCos = Vm * Math.sin(currentAngle + phaseRad);
-        document.getElementById('ac_sinText').innerText = iSin.toFixed(2); document.getElementById('ac_cosText').innerText = iCos.toFixed(2);
 
-        const pwr = Math.abs(iSin) / Vm;
-        if(pwr > 0.03) {
+        // 원화단 뷰포트 배치 파라미터 (좌측 160px 공간 분할 활용)
+        const circleCenterX = 80, circleRadius = Math.min(cy * 0.7, (Vm / 150) * cy * 0.7);
+        const waveStartX = 180;
+
+        // [1] 좌측 회전 기준 동심원 및 회전 화살표 작도
+        ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(circleCenterX, cy, circleRadius, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeStyle = '#334155'; ctx.setLineDash([2, 2]); ctx.beginPath(); ctx.moveTo(circleCenterX - cy, cy); ctx.lineTo(circleCenterX + cy, cy); ctx.moveTo(circleCenterX, 0); ctx.lineTo(circleCenterX, canvas.height); ctx.stroke(); ctx.setLineDash([]);
+
+        // 사인(파랑) 회전 포인터 좌표
+        const sinPtrX = circleCenterX + Math.cos(currentAngle) * circleRadius;
+        const sinPtrY = cy - Math.sin(currentAngle) * circleRadius;
+        ctx.fillStyle = '#3b82f6'; ctx.beginPath(); ctx.arc(sinPtrX, sinPtrY, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(circleCenterX, cy); ctx.lineTo(sinPtrX, sinPtrY); ctx.stroke();
+
+        // 코사인/위상차(초록) 회전 포인터 좌표
+        const cosPtrX = circleCenterX + Math.cos(currentAngle + phaseRad) * circleRadius;
+        const cosPtrY = cy - Math.sin(currentAngle + phaseRad) * circleRadius;
+        ctx.fillStyle = '#10b981'; ctx.beginPath(); ctx.arc(cosPtrX, cosPtrY, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#10b981'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(circleCenterX, cy); ctx.lineTo(cosPtrX, cosPtrY); ctx.stroke();
+
+        // 🚨 원의 높이와 파형의 시작점을 이어주는 가로 점선 인터록 가이드라인 드로잉
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.4)'; ctx.setLineDash([3, 3]); ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(sinPtrX, sinPtrY); ctx.lineTo(waveStartX, sinPtrY); ctx.stroke(); ctx.setLineDash([]);
+
+        // [2] 우측 스크롤 정현파 플로팅 (원과 완벽하게 일치하는 접점 연동)
+        ctx.strokeStyle = '#1f293d'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(waveStartX, cy); ctx.lineTo(w, cy); ctx.stroke();
+        
+        // 🚨 매입 라벨 가독 인터록
+        ctx.fillStyle = 'rgba(255,255,255,0.15)'; ctx.font = '10px sans-serif'; ctx.fillText("회전 벡터(Phasor)", 15, 20); ctx.fillText("시간 분해 전압 파형", waveStartX + 10, 20);
+
+        // 실시간 연산 분크 바인딩
+        const instSin = Vm * Math.sin(currentAngle), instCos = Vm * Math.sin(currentAngle + phaseRad);
+        document.getElementById('ac_sinText').innerText = instSin.toFixed(2); document.getElementById('ac_cosText').innerText = instCos.toFixed(2);
+
+        // 🚨 전구 깜빡임(플리커) 싱크 정밀 조정: 파형의 시작 지점(waveStartX)의 순시 에너지 크기(instSin)와 100% 실시간 수학적 정렬
+        const pwr = Math.abs(instSin) / Vm;
+        if(pwr > 0.02) {
             acBulbCore.style.background = `rgba(245, 158, 11, ${0.1 + pwr * 0.9})`;
-            acBulbCore.style.transform = `translate(50%, -50%) scale(${0.95 + (pwr * 0.18)})`;
-            acBulbCore.style.boxShadow = `0 0 ${pwr*60}px ${(pwr*60)/3.5}px rgba(245, 158, 11, 0.85)`;
+            acBulbCore.style.transform = `translate(50%, -50%) scale(${0.95 + (pwr * 0.16)})`;
+            acBulbCore.style.boxShadow = `0 0 ${pwr*50}px ${(pwr*50)/3}px rgba(245, 158, 11, 0.85)`;
         } else {
             acBulbCore.style.background = '#1f293d'; acBulbCore.style.transform = 'translate(50%, -50%) scale(1)'; acBulbCore.style.boxShadow = 'none';
         }
 
+        // 🚨 회로 내부 전하 입자 왕복 진동 엔진 자바스크립트 수동 결합 (전동 흐름 엇박자 완벽 청산)
+        const halfAmp = acWireTrack.offsetWidth * 0.38;
+        const acDots = acWireTrack.querySelectorAll('.ac-particle');
+        // 순시 전류 변위량 연산 (Voltage Phase 동기식 전하 드리프트)
+        const driftOffset = Math.sin(currentAngle) * halfAmp;
+        acDots.forEach(dot => {
+            dot.style.transform = `translateX(${driftOffset}px)`;
+        });
+
+        // 파란색 기본 정현파 드로잉
         ctx.lineWidth = 2.5; ctx.strokeStyle = '#3b82f6'; ctx.beginPath();
-        for (let x = 0; x < w; x++) { const y = cy - (Math.sin((x/w)*Math.PI*4 + currentAngle) * (cy*0.65) * (Vm/150)); x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+        for (let x = waveStartX; x < w; x++) {
+            const angle = ((x - waveStartX) / (w - waveStartX)) * Math.PI * 3.5 + currentAngle;
+            const y = cy - (Math.sin(angle) * circleRadius);
+            x === waveStartX ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
         ctx.stroke();
 
+        // 초록색 위상차 정현파 드로잉
         ctx.strokeStyle = '#10b981'; ctx.beginPath();
-        for (let x = 0; x < w; x++) { const y = cy - (Math.sin((x/w)*Math.PI*4 + currentAngle + phaseRad) * (cy*0.65) * (Vm/150)); x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+        for (let x = waveStartX; x < w; x++) {
+            const angle = ((x - waveStartX) / (w - waveStartX)) * Math.PI * 3.5 + currentAngle + phaseRad;
+            const y = cy - (Math.sin(angle) * circleRadius);
+            x === waveStartX ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
         ctx.stroke();
+
+        // 측정 타겟 버티컬 고정 교차 분석선선
+        ctx.strokeStyle = 'rgba(244, 63, 94, 0.5)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(waveStartX, 0); ctx.lineTo(waveStartX, canvas.height); ctx.stroke();
+
         requestAnimationFrame(renderAcLoop);
     }
 
     function spawnAcParticles() {
         acWireTrack.querySelectorAll('.ac-particle').forEach(el => el.remove());
-        for(let k = 0; k < 35; k++) {
+        const total = 30;
+        for(let k = 0; k < total; k++) {
             const dot = document.createElement('div'); dot.className = 'ac-particle';
-            dot.style.animationDelay = `-${k * (1 / 35)}s`; acWireTrack.appendChild(dot);
+            // 기차놀이 형태로 고르게 배정 후 런타임 루프에서 단체로 변위 가중
+            dot.style.left = `${(k / total) * 100}%`; acWireTrack.appendChild(dot);
         }
     }
 
@@ -281,106 +332,65 @@
     let targetQuat = new THREE.Quaternion();
     const euler = new THREE.Euler(0, 0, 0, 'XYZ');
 
-    const lblB = document.getElementById('lbl-B');
-    const lblI = document.getElementById('lbl-I');
-    const lblF = document.getElementById('lbl-F');
-    const bVec = new THREE.Vector3(2.5, 0, 0); // 검지 끝점
-    const iVec = new THREE.Vector3(0, 0, -2.5); // 중지 끝점
-    const fVec = new THREE.Vector3(0, -2.5, 0); // 엄지 끝점
+    const lblB = document.getElementById('lbl-B'), lblI = document.getElementById('lbl-I'), lblF = document.getElementById('lbl-F');
+    const bVec = new THREE.Vector3(2.5, 0, 0), iVec = new THREE.Vector3(0, 0, -2.5), fVec = new THREE.Vector3(0, -2.5, 0);
 
     function initThreeJS() {
         const container = document.getElementById('threeCanvas');
         scene = new THREE.Scene();
-        
-        // 카메라 세팅 (3D 원근감)
         camera = new THREE.PerspectiveCamera(45, container.offsetWidth / container.offsetHeight, 0.1, 100);
-        camera.position.set(5, 4, 6);
-        camera.lookAt(0, 0, 0);
+        camera.position.set(5, 4, 6); camera.lookAt(0, 0, 0);
 
         renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
         renderer.setSize(container.offsetWidth, container.offsetHeight);
         container.appendChild(renderer.domElement);
 
-        // 조명 세팅
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        scene.add(ambientLight);
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        dirLight.position.set(10, 10, 10);
-        scene.add(dirLight);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8); dirLight.position.set(10, 10, 10); scene.add(dirLight);
 
-        // 그리드 헬퍼 (공간감 형성)
-        const gridHelper = new THREE.GridHelper(10, 10, 0x334155, 0x1e293b);
-        gridHelper.position.y = -3.5;
-        scene.add(gridHelper);
+        const gridHelper = new THREE.GridHelper(10, 10, 0x334155, 0x1e293b); gridHelper.position.y = -3.5; scene.add(gridHelper);
 
         handGroup = new THREE.Group();
 
-        // 화살표 렌더링 헬퍼 함수 (실린더 + 콘)
         function createThickArrow(color, dir, length) {
-            const group = new THREE.Group();
-            const mat = new THREE.MeshPhongMaterial({ color: color, shininess: 100 });
-            
-            const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, length - 0.5), mat);
-            shaft.position.y = (length - 0.5) / 2;
-            const head = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.5), mat);
-            head.position.y = length - 0.25;
-            
+            const group = new THREE.Group(), mat = new THREE.MeshPhongMaterial({ color: color, shininess: 100 });
+            const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, length - 0.5), mat); shaft.position.y = (length - 0.5) / 2;
+            const head = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.5), mat); head.position.y = length - 0.25;
             group.add(shaft); group.add(head);
-            const target = new THREE.Vector3().copy(dir);
-            group.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), target.normalize());
+            group.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
             return group;
         }
 
-        // B: 검지 (X축), I: 중지 (-Z축), F: 엄지 (-Y축) 기본 세팅
-        const arrowB = createThickArrow(0x10b981, new THREE.Vector3(1, 0, 0), 2.5); // Green
-        const arrowI = createThickArrow(0x3b82f6, new THREE.Vector3(0, 0, -1), 2.5); // Blue
-        const arrowF = createThickArrow(0xef4444, new THREE.Vector3(0, -1, 0), 2.5); // Red
-        
-        // 중앙 조인트 힌지
-        const joint = new THREE.Mesh(new THREE.SphereGeometry(0.25, 32, 32), new THREE.MeshPhongMaterial({color: 0x94a3b8}));
-
-        handGroup.add(arrowB); handGroup.add(arrowI); handGroup.add(arrowF); handGroup.add(joint);
+        handGroup.add(createThickArrow(0x10b981, new THREE.Vector3(1, 0, 0), 2.5));
+        handGroup.add(createThickArrow(0x3b82f6, new THREE.Vector3(0, 0, -1), 2.5));
+        handGroup.add(createThickArrow(0xef4444, new THREE.Vector3(0, -1, 0), 2.5));
+        handGroup.add(new THREE.Mesh(new THREE.SphereGeometry(0.25, 32, 32), new THREE.MeshPhongMaterial({color: 0x94a3b8})));
         scene.add(handGroup);
-
         animateThreeJS();
     }
 
     function animateThreeJS() {
         requestAnimationFrame(animateThreeJS);
-        
-        // 🚨 Slerp를 이용해 부드럽게 3차원 최단거리 회전 애니메이션 수행
         handGroup.quaternion.slerp(targetQuat, 0.1);
 
-        // 3D 좌표를 2D 화면 좌표로 투영(Projection)하여 HTML 텍스트 라벨 위치 동기화
         const canvasRect = renderer.domElement.getBoundingClientRect();
-        const halfW = canvasRect.width / 2;
-        const halfH = canvasRect.height / 2;
-
+        const halfW = canvasRect.width / 2, halfH = canvasRect.height / 2;
         const updateLabelPos = (lbl, localVec) => {
             const vec = localVec.clone().applyMatrix4(handGroup.matrixWorld).project(camera);
-            lbl.style.left = `${(vec.x * halfW) + halfW}px`;
-            lbl.style.top = `${-(vec.y * halfH) + halfH}px`;
+            lbl.style.left = `${(vec.x * halfW) + halfW}px`; lbl.style.top = `${-(vec.y * halfH) + halfH}px`;
         };
-
-        updateLabelPos(lblB, bVec);
-        updateLabelPos(lblI, iVec);
-        updateLabelPos(lblF, fVec);
-
+        updateLabelPos(lblB, bVec); updateLabelPos(lblI, iVec); updateLabelPos(lblF, fVec);
         renderer.render(scene, camera);
     }
 
-    // 3D 캔버스 리사이징 처리
     function resizeThreeJS() {
         if(!camera || !renderer) return;
         const container = document.getElementById('threeCanvas');
-        camera.aspect = container.offsetWidth / container.offsetHeight;
-        camera.updateProjectionMatrix();
+        camera.aspect = container.offsetWidth / container.offsetHeight; camera.updateProjectionMatrix();
         renderer.setSize(container.offsetWidth, container.offsetHeight);
     }
 
-    // 플레밍의 왼손 법칙 논리 제어 및 3D 회전 트리거
     function setFleming(type, val) {
-        // 기존 속성 추출
         let b_dir = document.getElementById('btn_b_right').classList.contains('active') ? 1 : -1;
         let i_dir = document.getElementById('btn_i_in').classList.contains('active') ? -1 : 1;
 
@@ -396,35 +406,27 @@
             document.getElementById('fl_iText').innerText = val === -1 ? 'IN (화면 안쪽)' : 'OUT (화면 밖)';
         }
 
-        // 3D 회전 각도 타겟팅 (물리 연산)
-        // 기본상태: B(1), I(-1) => F는 아래(-Y). 회전 (0,0,0)
-        if(b_dir === 1 && i_dir === -1) { euler.set(0, 0, 0); } 
-        else if(b_dir === -1 && i_dir === -1) { euler.set(0, 0, Math.PI); } // Z축 180도 회전
-        else if(b_dir === 1 && i_dir === 1) { euler.set(Math.PI, 0, 0); } // X축 180도 회전
-        else if(b_dir === -1 && i_dir === 1) { euler.set(0, Math.PI, 0); } // Y축 180도 회전
+        if(b_dir === 1 && i_dir === -1) euler.set(0, 0, 0);
+        else if(b_dir === -1 && i_dir === -1) euler.set(0, 0, Math.PI);
+        else if(b_dir === 1 && i_dir === 1) euler.set(Math.PI, 0, 0);
+        else if(b_dir === -1 && i_dir === 1) euler.set(0, Math.PI, 0);
         
         targetQuat.setFromEuler(euler);
-
-        // UI 텍스트 업데이트 (F = I x B 결과)
-        const f_dir = b_dir * i_dir; // 1*-1 = -1(Down), -1*-1 = 1(Up)
-        document.getElementById('fl_fText').innerText = f_dir === 1 ? 'UP (위로 튕김)' : 'DOWN (아래로 튕김)';
+        document.getElementById('fl_fText').innerText = (b_dir * i_dir) === 1 ? 'UP (위로 튕김)' : 'DOWN (아래로 튕김)';
     }
 
     // ==========================================================================
-    // [통합] 부트스트랩 및 이벤트 리스너
+    // [통합] 부트스트랩 인프라 바인딩
     // ==========================================================================
     window.addEventListener('resize', () => {
-        updateOhm(); canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight; spawnAcParticles(); resizeThreeJS();
+        updateOhm(); resizeCanvas(); spawnAcParticles(); resizeThreeJS();
     });
 
     window.addEventListener('load', () => {
         window.scrollTo(0, 0);
-        updateOhm(); 
-        canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight;
-        spawnAcParticles(); requestAnimationFrame(renderAcLoop);
-        
-        initThreeJS();
-        setFleming('B', 1); // 초기값 세팅 트리거
+        updateOhm(); resizeCanvas(); spawnAcParticles();
+        requestAnimationFrame(renderAcLoop);
+        initThreeJS(); setFleming('B', 1);
     });
 </script>
 </body>
