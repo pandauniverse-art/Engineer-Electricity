@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>시각적 전기기초 마스터 교과서</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 
@@ -42,7 +43,6 @@
         input[type="range"] { width: 100%; height: 6px; border-radius: 3px; background: #1f293d; outline: none; -webkit-appearance: none; cursor: pointer; }
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #4f46e5; transition: transform 0.1s; }
         input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
-
         .control-panel { display: flex; flex-direction: column; justify-content: flex-start; }
 
         /* ========================================================
@@ -54,11 +54,7 @@
         .ohm-battery::before { content: '+'; position: absolute; top: -22px; left: 50%; transform: translateX(-50%); color: #10b981; font-weight: bold; }
         .ohm-resistor { position: absolute; bottom: 22%; left: 50%; transform: translate(-50%, 50%); background: #64748b; color: #fff; padding: 6px 16px; border-radius: 4px; font-size: 0.9rem; font-weight: 700; z-index: 3; border: 2px dashed #475569; transition: background 0.2s ease; }
         .ohm-bulb { position: absolute; right: 15%; top: 50%; transform: translate(50%, -50%) scale(1); width: 62px; height: 62px; background: #1e293b; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.75rem; z-index: 3; border: 2px solid #334155; transition: transform 0.1s ease, background 0.1s ease, box-shadow 0.1s ease; }
-        
-        .ohm-particle {
-            position: absolute; width: 12px; height: 6px; background: #f59e0b; border-radius: 50%; box-shadow: 0 0 10px 2px #f59e0b; z-index: 4;
-            animation: ohmFlow linear infinite; animation-duration: var(--ohm-speed, 2.8s); transform: translate(-50%, -50%); will-change: left, top; pointer-events: none;
-        }
+        .ohm-particle { position: absolute; width: 12px; height: 6px; background: #f59e0b; border-radius: 50%; box-shadow: 0 0 10px 2px #f59e0b; z-index: 4; animation: ohmFlow linear infinite; animation-duration: var(--ohm-speed, 2.8s); transform: translate(-50%, -50%); will-change: left, top; pointer-events: none; }
         @keyframes ohmFlow { 0% { left: 0%; top: 100%; opacity: 0; } 5% { opacity: 1; } 25% { left: 0%; top: 0%; } 50% { left: 100%; top: 0%; } 75% { left: 100%; top: 100%; } 95% { opacity: 1; } 100% { left: 0%; top: 100%; opacity: 0; } }
 
         /* ========================================================
@@ -69,50 +65,28 @@
         .ac-gen { position: absolute; left: 12.5%; top: 50%; transform: translate(-50%, -50%); background: #3b82f6; padding: 10px; border-radius: 50%; font-size: 1.1rem; font-weight: 800; z-index: 5; border: 2px solid #1d4ed8; box-shadow: 0 0 12px rgba(59, 130, 246, 0.4); }
         .ac-bulb { position: absolute; right: 12.5%; top: 50%; transform: translate(50%, -50%); width: 54px; height: 54px; background: #1f293d; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.4rem; z-index: 5; border: 2px solid #334155; will-change: background, box-shadow, transform; transition: transform 0.05s ease; }
         .ac-chart { background: #040710; border: 1px solid #1f293d; border-radius: 16px; height: 180px; position: relative; width: 100%; margin-top: 12px; }
-        canvas { width: 100%; height: 100%; display: block; }
-        
-        .ac-particle {
-            position: absolute; width: 12px; height: 6px; background: #f59e0b; border-radius: 50%; box-shadow: 0 0 12px 2px #f59e0b; z-index: 4; top: -1px; left: 0;
-            animation: acOscillate linear infinite; animation-duration: var(--ac-period, 1s); will-change: transform;
-        }
+        #scopeCanvas { width: 100%; height: 100%; display: block; }
+        .ac-particle { position: absolute; width: 12px; height: 6px; background: #f59e0b; border-radius: 50%; box-shadow: 0 0 12px 2px #f59e0b; z-index: 4; top: -1px; left: 0; animation: acOscillate linear infinite; animation-duration: var(--ac-period, 1s); will-change: transform; }
         @keyframes acOscillate { 0% { transform: translateX(0); } 25% { transform: translateX(var(--track-width, 300px)); } 50% { transform: translateX(0); } 75% { transform: translateX(calc(var(--track-width, 300px) * -1)); } 100% { transform: translateX(0); } }
         .wave-color-sin { color: #3b82f6 !important; }
         .wave-color-cos { color: #10b981 !important; }
 
         /* ========================================================
-           [PART 3. 플레밍의 법칙 전용]
+           [PART 3. 플레밍의 3D 공간 법칙 전용]
            ======================================================== */
-        #flStage { height: 320px; display: flex; justify-content: center; align-items: center; background: #030712; box-shadow: inset 0 0 40px rgba(0,0,0,0.8); perspective: 1000px; }
+        #flStage { height: 360px; display: flex; justify-content: center; align-items: center; background: #030712; box-shadow: inset 0 0 50px rgba(0,0,0,0.8); position: relative; }
+        #threeCanvas { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 2; outline: none; }
         
-        .fl-magnet { position: absolute; width: 60px; height: 100%; top: 0; display: flex; justify-content: center; align-items: center; font-size: 2rem; font-weight: 900; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.5); z-index: 5; }
-        .fl-n-pole { left: 0; background: linear-gradient(90deg, #ef4444, #be123c); border-right: 4px solid #9f1239; }
-        .fl-s-pole { right: 0; background: linear-gradient(90deg, #1d4ed8, #3b82f6); border-left: 4px solid #1e3a8a; }
-
-        .fl-b-lines { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-evenly; opacity: 0.2; pointer-events: none; }
-        .fl-b-line { width: 100%; height: 2px; background: repeating-linear-gradient(90deg, #10b981 0, #10b981 10px, transparent 10px, transparent 20px); }
-
-        .fl-wire {
-            position: relative; width: 80px; height: 80px; background: #f59e0b; border-radius: 50%;
-            border: 6px solid #d97706; display: flex; justify-content: center; align-items: center;
-            font-size: 2.2rem; font-weight: bold; color: #fff; z-index: 10;
-            box-shadow: 0 0 20px rgba(245, 158, 11, 0.5), inset 0 0 15px rgba(255,255,255,0.4);
-            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); /* 힘(F)을 받을 때 튕기는 모션 */
-        }
-        
-        .fl-force-arrow {
-            position: absolute; width: 8px; height: 80px; background: #ef4444; z-index: 9;
-            transition: all 0.4s ease; opacity: 0; display: flex; justify-content: center;
-        }
-        .fl-force-arrow::after { content: ''; position: absolute; border-left: 12px solid transparent; border-right: 12px solid transparent; }
-        .fl-force-arrow.up { top: -90px; opacity: 1; }
-        .fl-force-arrow.up::after { top: -10px; border-bottom: 12px solid #ef4444; }
-        .fl-force-arrow.down { bottom: -90px; opacity: 1; }
-        .fl-force-arrow.down::after { bottom: -10px; border-top: 12px solid #ef4444; }
+        /* 3D 캔버스 위에 띄워질 동적 HTML 텍스트 라벨 */
+        .fl-label { position: absolute; font-weight: 800; font-size: 1rem; padding: 4px 8px; border-radius: 6px; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.2); z-index: 3; pointer-events: none; transform: translate(-50%, -50%); backdrop-filter: blur(4px); transition: opacity 0.2s; }
+        #lbl-B { color: #10b981; }
+        #lbl-I { color: #3b82f6; }
+        #lbl-F { color: #ef4444; }
 
         .fl-btn-group { display: flex; gap: 10px; margin-top: 5px; }
         .fl-btn { flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: #94a3b8; font-weight: bold; cursor: pointer; transition: all 0.2s; }
-        .fl-btn.active.mag { background: #10b981; color: white; border-color: #047857; }
-        .fl-btn.active.cur { background: #f59e0b; color: white; border-color: #b45309; }
+        .fl-btn.active.mag { background: #10b981; color: white; border-color: #047857; box-shadow: 0 0 10px rgba(16,185,129,0.3); }
+        .fl-btn.active.cur { background: #3b82f6; color: white; border-color: #1d4ed8; box-shadow: 0 0 10px rgba(59,130,246,0.3); }
     </style>
 </head>
 <body>
@@ -124,21 +98,13 @@
         <div class="ohm-resistor" id="ohmResCore">🚧 저항</div>
         <div class="ohm-bulb" id="ohmBulbCore">💡</div>
     </div>
-
     <div class="control-panel">
-        <div>
-            <div class="panel-header">📐 01. 옴의 법칙 제어판 (V=IR)</div>
-            <p class="panel-sub">전압 Max, 저항 Min 설정 시 선 형태로 촘촘하게 흐르는 레이저 빔을 목격하세요.</p>
-        </div>
-
+        <div><div class="panel-header">📐 01. 옴의 법칙 제어판 (V=IR)</div><p class="panel-sub">전압 Max, 저항 Min 설정 시 선 형태로 흐르는 전류 빔을 확인하세요.</p></div>
         <div class="mini-display">
             <div class="data-row"><span>전압 V</span><span><strong id="ohm_vText">5.0</strong> V</span></div>
             <div class="data-row"><span>저항 R</span><span><strong id="ohm_rText">10</strong> Ω</span></div>
-            <div class="data-row" style="border-top: 1px dashed #1f293d; padding-top: 8px; margin-top: 4px;">
-                <span>전류 I = V ÷ R</span><span><strong id="ohm_iText" class="highlight-i">0.50</strong> A</span>
-            </div>
+            <div class="data-row" style="border-top: 1px dashed #1f293d; padding-top: 8px; margin-top: 4px;"><span>전류 I = V ÷ R</span><span><strong id="ohm_iText" class="highlight-i">0.50</strong> A</span></div>
         </div>
-
         <div class="slider-wrapper">
             <div class="slider-group">
                 <div class="slider-meta"><span style="color:#10b981;">🔋 전압 조절</span><span style="color:#10b981;" id="ohm_vVal">5.0 V</span></div>
@@ -154,30 +120,16 @@
 
 <div class="lab-kit">
     <div style="display: flex; flex-direction: column; width: 100%; min-width: 0;">
-        <div class="circuit-section" id="acStage">
-            <div class="ac-wire" id="acWireTrack"></div>
-            <div class="ac-gen">∼</div>
-            <div class="ac-bulb" id="acBulbCore">💡</div>
-        </div>
-        <div class="ac-chart">
-            <canvas id="scopeCanvas"></canvas>
-        </div>
+        <div class="circuit-section" id="acStage"><div class="ac-wire" id="acWireTrack"></div><div class="ac-gen">∼</div><div class="ac-bulb" id="acBulbCore">💡</div></div>
+        <div class="ac-chart"><canvas id="scopeCanvas"></canvas></div>
     </div>
-
     <div class="control-panel">
-        <div>
-            <div class="panel-header">📈 02. 정현파 파형 분석 모듈</div>
-            <p class="panel-sub">사인(기본)과 코사인(위상차) 파형에 따른 전하의 진동과 플리커 현상을 분석합니다.</p>
-        </div>
-        
+        <div><div class="panel-header">📈 02. 정현파 파형 분석 모듈</div><p class="panel-sub">사인(기본)과 코사인(위상차) 파형에 따른 교류 진동을 분석합니다.</p></div>
         <div class="mini-display">
             <div class="data-row"><span>순시 전압 v(t)</span><span><strong id="ac_sinText" class="wave-color-sin">0.00</strong> V</span></div>
             <div class="data-row"><span>위상 전압 v_θ(t)</span><span><strong id="ac_cosText" class="wave-color-cos">0.00</strong> V</span></div>
-            <div class="data-row" style="border-top:1px dashed #1f293d; padding-top:6px; margin-top:2px;">
-                <span>현재 실효값 (Vrms)</span><span><strong id="ac_rmsText">0.00</strong> V</span>
-            </div>
+            <div class="data-row" style="border-top:1px dashed #1f293d; padding-top:6px; margin-top:2px;"><span>실효값 (Vrms)</span><span><strong id="ac_rmsText">0.00</strong> V</span></div>
         </div>
-
         <div class="slider-wrapper">
             <div class="slider-group">
                 <div class="slider-meta"><span style="color:#f43f5e;">⚡ 전압 최댓값 (Vm)</span><span id="ac_vmIndicator">100.0 V</span></div>
@@ -197,43 +149,36 @@
 
 <div class="lab-kit">
     <div class="circuit-section" id="flStage">
-        <div class="fl-magnet fl-n-pole" id="flN">N</div>
-        <div class="fl-b-lines">
-            <div class="fl-b-line"></div><div class="fl-b-line"></div><div class="fl-b-line"></div><div class="fl-b-line"></div><div class="fl-b-line"></div>
-        </div>
-        
-        <div style="position:relative; display:flex; justify-content:center; align-items:center;">
-            <div class="fl-force-arrow" id="flForce"></div>
-            <div class="fl-wire" id="flWire">⊗</div>
-        </div>
-
-        <div class="fl-magnet fl-s-pole" id="flS">S</div>
+        <div id="threeCanvas"></div>
+        <div class="fl-label" id="lbl-B">검지: 자기장(B)</div>
+        <div class="fl-label" id="lbl-I">중지: 전류(I)</div>
+        <div class="fl-label" id="lbl-F">엄지: 힘(F)</div>
     </div>
 
     <div class="control-panel">
         <div>
-            <div class="panel-header" style="color: #fcd34d;">🧲 03. 플레밍의 왼손 법칙 (모터)</div>
-            <p class="panel-sub">자기장(B)과 전류(I)의 방향을 결정하면 도선이 받는 힘(F)의 방향을 즉각적으로 도출합니다.</p>
+            <div class="panel-header" style="color: #fcd34d;">🖐️ 03. 3D 플레밍의 왼손 법칙 (모터)</div>
+            <p class="panel-sub">버튼을 눌러 3차원 공간에서 플레밍의 왼손(F, B, I) 축이 회전하며 물리적으로 도출되는 힘의 방향을 확인하세요.</p>
         </div>
 
         <div class="mini-display">
-            <div class="data-row"><span>자기장 (B) 방향</span><span><strong id="fl_bText" style="color:#10b981;">Right (N→S)</strong></span></div>
-            <div class="data-row"><span>전류 (I) 방향</span><span><strong id="fl_iText" style="color:#f59e0b;">IN (화면 안쪽)</strong></span></div>
+            <div class="data-row"><span>자기장 (B)</span><span><strong id="fl_bText" style="color:#10b981;">N ➔ S (Right)</strong></span></div>
+            <div class="data-row"><span>전류 (I)</span><span><strong id="fl_iText" style="color:#3b82f6;">IN (화면 안쪽)</strong></span></div>
             <div class="data-row" style="border-top:1px dashed #1f293d; padding-top:6px; margin-top:2px;">
-                <span>도선 이동 (F) 방향</span><span><strong id="fl_fText" style="color:#ef4444;">DOWN (아래)</strong></span>
+                <span>도출된 힘 (F)</span><span><strong id="fl_fText" style="color:#ef4444;">DOWN (아래로 튕김)</strong></span>
             </div>
         </div>
 
         <div class="slider-wrapper">
             <div class="slider-group">
-                <div class="slider-meta"><span style="color:#10b981;">🧲 자기장 (B) 배치 스위칭</span></div>
+                <div class="slider-meta"><span style="color:#10b981;">🧲 검지: 자기장 (B) 방향</span></div>
                 <div class="fl-btn-group">
-                    <button class="fl-btn active mag" id="btn_b_right" onclick="setFleming('B', 1)">N ➔ S (우)</button>
-                    <button class="fl-btn" id="btn_b_left" onclick="setFleming('B', -1)">S ⬅ N (좌)</button>
+                    <button class="fl-btn active mag" id="btn_b_right" onclick="setFleming('B', 1)">N ➔ S (우측)</button>
+                    <button class="fl-btn" id="btn_b_left" onclick="setFleming('B', -1)">S ⬅ N (좌측)</button>
                 </div>
             </div>
             <div class="slider-group" style="margin-top: 5px;">
-                <div class="slider-meta"><span style="color:#f59e0b;">⚡ 전류 (I) 흐름 스위칭</span></div>
+                <div class="slider-meta"><span style="color:#3b82f6;">⚡ 중지: 전류 (I) 방향</span></div>
                 <div class="fl-btn-group">
                     <button class="fl-btn active cur" id="btn_i_in" onclick="setFleming('I', -1)">⊗ 들어감 (IN)</button>
                     <button class="fl-btn" id="btn_i_out" onclick="setFleming('I', 1)">⊙ 나옴 (OUT)</button>
@@ -245,238 +190,241 @@
 
 <script>
     // ==========================================================================
-    // [1] 옴의 법칙 런타임 제어
+    // [1] 옴의 법칙 런타임
     // ==========================================================================
-    const ohm_vRange = document.getElementById('ohm_vRange');
-    const ohm_rRange = document.getElementById('ohm_rRange');
-    const ohm_vText = document.getElementById('ohm_vText');
-    const ohm_rText = document.getElementById('ohm_rText');
-    const ohm_iText = document.getElementById('ohm_iText');
-    const ohm_vVal = document.getElementById('ohm_vVal');
-    const ohm_rVal = document.getElementById('ohm_rVal');
-    const ohmBulbCore = document.getElementById('ohmBulbCore');
-    const ohmResCore = document.getElementById('ohmResCore');
-    const ohmStage = document.getElementById('ohmStage');
-    const ohmLoop = document.getElementById('ohmLoop');
-
+    const ohm_vRange = document.getElementById('ohm_vRange'), ohm_rRange = document.getElementById('ohm_rRange');
+    const ohmStage = document.getElementById('ohmStage'), ohmLoop = document.getElementById('ohmLoop'), ohmBulbCore = document.getElementById('ohmBulbCore');
+    
     function updateOhm() {
-        const v = parseFloat(ohm_vRange.value);
-        const r = parseFloat(ohm_rRange.value);
-        const i = v / r;
-
-        ohm_vText.innerText = v.toFixed(1); ohm_vVal.innerText = v.toFixed(1) + ' V';
-        ohm_rText.innerText = r; ohm_rVal.innerText = r + ' Ω';
-        ohm_iText.innerText = i.toFixed(2);
-        ohmResCore.innerText = `🚧 ${r}Ω`;
-
-        const visualCurrent = Math.min(i, 15);
-        const bulbScale = Math.min(1 + (visualCurrent * 0.05), 1.5);
-        const glowRadius = Math.min(10 + (visualCurrent * 12), 150);
-        const alpha = Math.min(0.1 + (visualCurrent * 0.15), 1);
-
+        const v = parseFloat(ohm_vRange.value), r = parseFloat(ohm_rRange.value), i = v / r;
+        document.getElementById('ohm_vText').innerText = v.toFixed(1); document.getElementById('ohm_vVal').innerText = v.toFixed(1) + ' V';
+        document.getElementById('ohm_rText').innerText = r; document.getElementById('ohm_rVal').innerText = r + ' Ω';
+        document.getElementById('ohm_iText').innerText = i.toFixed(2);
+        
+        const vc = Math.min(i, 15), alpha = Math.min(0.1 + (vc * 0.15), 1), glow = Math.min(10 + (vc * 12), 150);
         ohmBulbCore.style.background = `rgba(245, 158, 11, ${alpha})`;
-        ohmBulbCore.style.transform = `translate(50%, -50%) scale(${bulbScale})`;
-        ohmBulbCore.style.boxShadow = `0 0 ${glowRadius}px ${glowRadius/2}px rgba(245, 158, 11, ${alpha})`;
-
-        const resIntensity = Math.max(40, 120 - (r * 2.5));
-        ohmResCore.style.background = `rgb(${resIntensity}, ${resIntensity + 15}, ${resIntensity + 30})`;
-
-        const speedDuration = Math.max(0.35, 4.0 / Math.max(i, 0.5));
-        ohmStage.style.setProperty('--ohm-speed', `${speedDuration}s`);
-
-        const maxDots = Math.min(Math.floor(i * 3) + 3, 40);
+        ohmBulbCore.style.transform = `translate(50%, -50%) scale(${Math.min(1 + (vc * 0.05), 1.5)})`;
+        ohmBulbCore.style.boxShadow = `0 0 ${glow}px ${glow/2}px rgba(245, 158, 11, ${alpha})`;
+        
+        const speed = Math.max(0.35, 4.0 / Math.max(i, 0.5));
+        ohmStage.style.setProperty('--ohm-speed', `${speed}s`);
+        
+        const dots = Math.min(Math.floor(i * 3) + 3, 40);
         ohmLoop.querySelectorAll('.ohm-particle').forEach(el => el.remove());
-
-        for (let k = 0; k < maxDots; k++) {
-            const dot = document.createElement('div');
-            dot.className = 'ohm-particle';
-            dot.style.animationDelay = `${k * (speedDuration / maxDots)}s`;
-            if (i > 5) { dot.style.width = '24px'; } 
+        for (let k = 0; k < dots; k++) {
+            const dot = document.createElement('div'); dot.className = 'ohm-particle';
+            dot.style.animationDelay = `${k * (speed / dots)}s`;
+            if (i > 5) dot.style.width = '24px';
             ohmLoop.appendChild(dot);
         }
     }
-
-    ohm_vRange.addEventListener('input', updateOhm);
-    ohm_rRange.addEventListener('input', updateOhm);
+    ohm_vRange.addEventListener('input', updateOhm); ohm_rRange.addEventListener('input', updateOhm);
 
     // ==========================================================================
-    // [2] 교류 파형(AC) 오실로스코프 런타임 제어
+    // [2] 교류 파형(AC) 오실로스코프 런타임
     // ==========================================================================
-    const ac_vmRange = document.getElementById('ac_vmRange');
-    const ac_fRange = document.getElementById('ac_fRange');
-    const ac_pRange = document.getElementById('ac_pRange');
-    const ac_sinText = document.getElementById('ac_sinText');
-    const ac_cosText = document.getElementById('ac_cosText');
-    const ac_rmsText = document.getElementById('ac_rmsText');
-    const ac_vmIndicator = document.getElementById('ac_vmIndicator');
-    const ac_fIndicator = document.getElementById('ac_fIndicator');
-    const ac_pIndicator = document.getElementById('ac_pIndicator');
-    const acBulbCore = document.getElementById('acBulbCore');
-    const acWireTrack = document.getElementById('acWireTrack');
-    const acStage = document.getElementById('acStage');
-    const canvas = document.getElementById('scopeCanvas');
-    const ctx = canvas.getContext('2d');
+    const ac_vmRange = document.getElementById('ac_vmRange'), ac_fRange = document.getElementById('ac_fRange'), ac_pRange = document.getElementById('ac_pRange');
+    const acStage = document.getElementById('acStage'), acWireTrack = document.getElementById('acWireTrack'), acBulbCore = document.getElementById('acBulbCore');
+    const canvas = document.getElementById('scopeCanvas'), ctx = canvas.getContext('2d');
     let timeTicker = 0;
 
-    function resizeCanvas() { canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight; }
-
     function renderAcLoop() {
-        const Vm = parseFloat(ac_vmRange.value);
-        const freq = parseFloat(ac_fRange.value);
-        const phaseDeg = parseFloat(ac_pRange.value);
-        const phaseRad = (phaseDeg * Math.PI) / 180;
-        const Vrms = Vm / Math.sqrt(2);
+        const Vm = parseFloat(ac_vmRange.value), freq = parseFloat(ac_fRange.value), phaseRad = (parseFloat(ac_pRange.value) * Math.PI) / 180;
+        document.getElementById('ac_vmIndicator').innerText = Vm.toFixed(1) + ' V';
+        document.getElementById('ac_fIndicator').innerText = freq.toFixed(1) + ' Hz';
+        document.getElementById('ac_rmsText').innerText = (Vm / Math.sqrt(2)).toFixed(1) + ' V';
+        document.getElementById('ac_pIndicator').innerText = ac_pRange.value + '°';
 
-        ac_vmIndicator.innerText = Vm.toFixed(1) + ' V';
-        ac_fIndicator.innerText = freq.toFixed(1) + ' Hz';
-        ac_pIndicator.innerText = phaseDeg + '°';
-        ac_rmsText.innerText = Vrms.toFixed(1) + ' V';
-
-        const trackWidth = acWireTrack.offsetWidth;
-        const halfAmplitude = (trackWidth * 0.38);
-        acStage.style.setProperty('--track-width', `${halfAmplitude}px`);
+        acStage.style.setProperty('--track-width', `${acWireTrack.offsetWidth * 0.38}px`);
         acStage.style.setProperty('--ac-period', `${1 / freq}s`);
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const centerY = canvas.height / 2;
-        const width = canvas.width;
-        
-        ctx.strokeStyle = '#1f293d'; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(0, centerY); ctx.lineTo(width, centerY); ctx.stroke();
+        const cy = canvas.height / 2, w = canvas.width;
+        ctx.strokeStyle = '#1f293d'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
 
         timeTicker += 0.015 * freq;
         const currentAngle = 2 * Math.PI * timeTicker;
+        const iSin = Vm * Math.sin(currentAngle), iCos = Vm * Math.sin(currentAngle + phaseRad);
+        document.getElementById('ac_sinText').innerText = iSin.toFixed(2); document.getElementById('ac_cosText').innerText = iCos.toFixed(2);
 
-        const instSin = Vm * Math.sin(currentAngle);
-        const instCos = Vm * Math.sin(currentAngle + phaseRad);
-
-        ac_sinText.innerText = instSin.toFixed(2);
-        ac_cosText.innerText = instCos.toFixed(2);
-
-        const pwr = Math.abs(instSin) / Vm;
-        const bScale = 0.95 + (pwr * 0.18);
-        const glow = pwr * 60;
-        
+        const pwr = Math.abs(iSin) / Vm;
         if(pwr > 0.03) {
             acBulbCore.style.background = `rgba(245, 158, 11, ${0.1 + pwr * 0.9})`;
-            acBulbCore.style.transform = `translate(50%, -50%) scale(${bScale})`;
-            acBulbCore.style.boxShadow = `0 0 ${glow}px ${glow/3.5}px rgba(245, 158, 11, 0.85)`;
+            acBulbCore.style.transform = `translate(50%, -50%) scale(${0.95 + (pwr * 0.18)})`;
+            acBulbCore.style.boxShadow = `0 0 ${pwr*60}px ${(pwr*60)/3.5}px rgba(245, 158, 11, 0.85)`;
         } else {
             acBulbCore.style.background = '#1f293d'; acBulbCore.style.transform = 'translate(50%, -50%) scale(1)'; acBulbCore.style.boxShadow = 'none';
         }
 
         ctx.lineWidth = 2.5; ctx.strokeStyle = '#3b82f6'; ctx.beginPath();
-        for (let x = 0; x < width; x++) {
-            const angle = (x / width) * 2 * Math.PI * 2 + currentAngle;
-            const y = centerY - (Math.sin(angle) * (centerY * 0.65) * (Vm / 150));
-            if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-        }
+        for (let x = 0; x < w; x++) { const y = cy - (Math.sin((x/w)*Math.PI*4 + currentAngle) * (cy*0.65) * (Vm/150)); x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
         ctx.stroke();
 
         ctx.strokeStyle = '#10b981'; ctx.beginPath();
-        for (let x = 0; x < width; x++) {
-            const angle = (x / width) * 2 * Math.PI * 2 + currentAngle + phaseRad;
-            const y = centerY - (Math.sin(angle) * (centerY * 0.65) * (Vm / 150));
-            if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-        }
+        for (let x = 0; x < w; x++) { const y = cy - (Math.sin((x/w)*Math.PI*4 + currentAngle + phaseRad) * (cy*0.65) * (Vm/150)); x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
         ctx.stroke();
-
-        ctx.strokeStyle = 'rgba(244, 63, 94, 0.4)'; ctx.setLineDash([4, 4]);
-        ctx.beginPath(); ctx.moveTo(width * 0.2, 0); ctx.lineTo(width * 0.2, canvas.height); ctx.stroke(); ctx.setLineDash([]);
-
         requestAnimationFrame(renderAcLoop);
     }
 
     function spawnAcParticles() {
         acWireTrack.querySelectorAll('.ac-particle').forEach(el => el.remove());
         for(let k = 0; k < 35; k++) {
-            const dot = document.createElement('div');
-            dot.className = 'ac-particle';
-            dot.style.animationDelay = `-${k * (1 / 35)}s`;
-            acWireTrack.appendChild(dot);
+            const dot = document.createElement('div'); dot.className = 'ac-particle';
+            dot.style.animationDelay = `-${k * (1 / 35)}s`; acWireTrack.appendChild(dot);
         }
     }
 
     // ==========================================================================
-    // [3] 플레밍의 법칙 런타임 제어 (벡터 외적 연산)
+    // [3] Three.js 기반 플레밍 3D 시뮬레이터 엔진
     // ==========================================================================
-    let fl_b_dir = 1;  // 1: Left->Right (N->S), -1: Right->Left (S<-N)
-    let fl_i_dir = -1; // -1: 들어감(IN, ⊗), 1: 나옴(OUT, ⊙)
+    let scene, camera, renderer, handGroup;
+    let targetQuat = new THREE.Quaternion();
+    const euler = new THREE.Euler(0, 0, 0, 'XYZ');
 
-    const flWire = document.getElementById('flWire');
-    const flForce = document.getElementById('flForce');
-    const flN = document.getElementById('flN');
-    const flS = document.getElementById('flS');
-    const fl_bText = document.getElementById('fl_bText');
-    const fl_iText = document.getElementById('fl_iText');
-    const fl_fText = document.getElementById('fl_fText');
+    const lblB = document.getElementById('lbl-B');
+    const lblI = document.getElementById('lbl-I');
+    const lblF = document.getElementById('lbl-F');
+    const bVec = new THREE.Vector3(2.5, 0, 0); // 검지 끝점
+    const iVec = new THREE.Vector3(0, 0, -2.5); // 중지 끝점
+    const fVec = new THREE.Vector3(0, -2.5, 0); // 엄지 끝점
 
+    function initThreeJS() {
+        const container = document.getElementById('threeCanvas');
+        scene = new THREE.Scene();
+        
+        // 카메라 세팅 (3D 원근감)
+        camera = new THREE.PerspectiveCamera(45, container.offsetWidth / container.offsetHeight, 0.1, 100);
+        camera.position.set(5, 4, 6);
+        camera.lookAt(0, 0, 0);
+
+        renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(container.offsetWidth, container.offsetHeight);
+        container.appendChild(renderer.domElement);
+
+        // 조명 세팅
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(10, 10, 10);
+        scene.add(dirLight);
+
+        // 그리드 헬퍼 (공간감 형성)
+        const gridHelper = new THREE.GridHelper(10, 10, 0x334155, 0x1e293b);
+        gridHelper.position.y = -3.5;
+        scene.add(gridHelper);
+
+        handGroup = new THREE.Group();
+
+        // 화살표 렌더링 헬퍼 함수 (실린더 + 콘)
+        function createThickArrow(color, dir, length) {
+            const group = new THREE.Group();
+            const mat = new THREE.MeshPhongMaterial({ color: color, shininess: 100 });
+            
+            const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, length - 0.5), mat);
+            shaft.position.y = (length - 0.5) / 2;
+            const head = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.5), mat);
+            head.position.y = length - 0.25;
+            
+            group.add(shaft); group.add(head);
+            const target = new THREE.Vector3().copy(dir);
+            group.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), target.normalize());
+            return group;
+        }
+
+        // B: 검지 (X축), I: 중지 (-Z축), F: 엄지 (-Y축) 기본 세팅
+        const arrowB = createThickArrow(0x10b981, new THREE.Vector3(1, 0, 0), 2.5); // Green
+        const arrowI = createThickArrow(0x3b82f6, new THREE.Vector3(0, 0, -1), 2.5); // Blue
+        const arrowF = createThickArrow(0xef4444, new THREE.Vector3(0, -1, 0), 2.5); // Red
+        
+        // 중앙 조인트 힌지
+        const joint = new THREE.Mesh(new THREE.SphereGeometry(0.25, 32, 32), new THREE.MeshPhongMaterial({color: 0x94a3b8}));
+
+        handGroup.add(arrowB); handGroup.add(arrowI); handGroup.add(arrowF); handGroup.add(joint);
+        scene.add(handGroup);
+
+        animateThreeJS();
+    }
+
+    function animateThreeJS() {
+        requestAnimationFrame(animateThreeJS);
+        
+        // 🚨 Slerp를 이용해 부드럽게 3차원 최단거리 회전 애니메이션 수행
+        handGroup.quaternion.slerp(targetQuat, 0.1);
+
+        // 3D 좌표를 2D 화면 좌표로 투영(Projection)하여 HTML 텍스트 라벨 위치 동기화
+        const canvasRect = renderer.domElement.getBoundingClientRect();
+        const halfW = canvasRect.width / 2;
+        const halfH = canvasRect.height / 2;
+
+        const updateLabelPos = (lbl, localVec) => {
+            const vec = localVec.clone().applyMatrix4(handGroup.matrixWorld).project(camera);
+            lbl.style.left = `${(vec.x * halfW) + halfW}px`;
+            lbl.style.top = `${-(vec.y * halfH) + halfH}px`;
+        };
+
+        updateLabelPos(lblB, bVec);
+        updateLabelPos(lblI, iVec);
+        updateLabelPos(lblF, fVec);
+
+        renderer.render(scene, camera);
+    }
+
+    // 3D 캔버스 리사이징 처리
+    function resizeThreeJS() {
+        if(!camera || !renderer) return;
+        const container = document.getElementById('threeCanvas');
+        camera.aspect = container.offsetWidth / container.offsetHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.offsetWidth, container.offsetHeight);
+    }
+
+    // 플레밍의 왼손 법칙 논리 제어 및 3D 회전 트리거
     function setFleming(type, val) {
-        if(type === 'B') {
-            fl_b_dir = val;
+        // 기존 속성 추출
+        let b_dir = document.getElementById('btn_b_right').classList.contains('active') ? 1 : -1;
+        let i_dir = document.getElementById('btn_i_in').classList.contains('active') ? -1 : 1;
+
+        if (type === 'B') {
+            b_dir = val;
             document.getElementById('btn_b_right').classList.toggle('active', val === 1);
             document.getElementById('btn_b_left').classList.toggle('active', val === -1);
-            
-            // 자석 위치 시각적 스위칭
-            if(val === 1) {
-                flN.style.left = '0'; flN.style.right = 'auto';
-                flS.style.right = '0'; flS.style.left = 'auto';
-                fl_bText.innerText = 'Right (N→S)';
-            } else {
-                flN.style.right = '0'; flN.style.left = 'auto';
-                flS.style.left = '0'; flS.style.right = 'auto';
-                fl_bText.innerText = 'Left (S←N)';
-            }
-        } else if (type === 'I') {
-            fl_i_dir = val;
+            document.getElementById('fl_bText').innerText = val === 1 ? 'N ➔ S (Right)' : 'S ⬅ N (Left)';
+        } else {
+            i_dir = val;
             document.getElementById('btn_i_in').classList.toggle('active', val === -1);
             document.getElementById('btn_i_out').classList.toggle('active', val === 1);
-            
-            // 전류 기호 시각적 스위칭
-            flWire.innerText = val === -1 ? '⊗' : '⊙';
-            fl_iText.innerText = val === -1 ? 'IN (화면 안쪽)' : 'OUT (화면 밖)';
+            document.getElementById('fl_iText').innerText = val === -1 ? 'IN (화면 안쪽)' : 'OUT (화면 밖)';
         }
 
-        calcFlemingForce();
-    }
+        // 3D 회전 각도 타겟팅 (물리 연산)
+        // 기본상태: B(1), I(-1) => F는 아래(-Y). 회전 (0,0,0)
+        if(b_dir === 1 && i_dir === -1) { euler.set(0, 0, 0); } 
+        else if(b_dir === -1 && i_dir === -1) { euler.set(0, 0, Math.PI); } // Z축 180도 회전
+        else if(b_dir === 1 && i_dir === 1) { euler.set(Math.PI, 0, 0); } // X축 180도 회전
+        else if(b_dir === -1 && i_dir === 1) { euler.set(0, Math.PI, 0); } // Y축 180도 회전
+        
+        targetQuat.setFromEuler(euler);
 
-    function calcFlemingForce() {
-        // 플레밍 왼손 법칙 (전동기): F = I × B (벡터 외적)
-        // 화면 안쪽을 -Z, 바깥쪽을 +Z 로 가정. (i_dir)
-        // 오른쪽을 +X, 왼쪽을 -X 로 가정. (b_dir)
-        // 외적 규칙: Z × X = Y (위쪽). 즉, OUT(1) × RIGHT(1) = UP(1)
-        const f_dir = fl_i_dir * fl_b_dir; 
-
-        flForce.className = 'fl-force-arrow'; // 리셋
-        void flForce.offsetWidth; // 리플로우 강제 트리거 (애니메이션 재시작용)
-
-        if (f_dir === 1) {
-            fl_fText.innerText = 'UP (위로 튕김)';
-            fl_fText.style.color = '#ef4444';
-            flWire.style.transform = 'translateY(-60px)';
-            flForce.classList.add('up');
-        } else {
-            fl_fText.innerText = 'DOWN (아래로 튕김)';
-            fl_fText.style.color = '#ef4444';
-            flWire.style.transform = 'translateY(60px)';
-            flForce.classList.add('down');
-        }
+        // UI 텍스트 업데이트 (F = I x B 결과)
+        const f_dir = b_dir * i_dir; // 1*-1 = -1(Down), -1*-1 = 1(Up)
+        document.getElementById('fl_fText').innerText = f_dir === 1 ? 'UP (위로 튕김)' : 'DOWN (아래로 튕김)';
     }
 
     // ==========================================================================
-    // [통합] 이벤트 리스너 바인딩
+    // [통합] 부트스트랩 및 이벤트 리스너
     // ==========================================================================
     window.addEventListener('resize', () => {
-        updateOhm(); resizeCanvas(); spawnAcParticles();
+        updateOhm(); canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight; spawnAcParticles(); resizeThreeJS();
     });
 
     window.addEventListener('load', () => {
         window.scrollTo(0, 0);
         updateOhm(); 
-        resizeCanvas(); 
-        spawnAcParticles();
-        requestAnimationFrame(renderAcLoop);
-        calcFlemingForce(); // 플레밍 초기계산
+        canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight;
+        spawnAcParticles(); requestAnimationFrame(renderAcLoop);
+        
+        initThreeJS();
+        setFleming('B', 1); // 초기값 세팅 트리거
     });
 </script>
 </body>
