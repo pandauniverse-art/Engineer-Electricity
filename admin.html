@@ -1,1 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>전기기사 관리자</title>
+    <style>
+        body { font-family: sans-serif; background: #0f172a; color: #f8fafc; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: #1e293b; padding: 20px; border-radius: 10px; }
+        .box { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #94a3b8; }
+        select, input, textarea { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #4f46e5; border: none; color: white; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
 
+<div class="container">
+    <h2>데이터 관리자</h2>
+    <div class="box">
+        <label>과목 선택</label>
+        <select id="subjectSelect">
+            <option value="electromagnetic">전기자기학</option>
+            <option value="power_engineering">전력공학</option>
+            <option value="machine">전기기기</option>
+            <option value="circuit">회로이론</option>
+            <option value="regulations">전기설비기준</option>
+            <option value="silgi">실기 종합</option>
+        </select>
+    </div>
+    <div class="box">
+        <label>제목</label>
+        <input type="text" id="title">
+    </div>
+    <div class="box">
+        <label>내용</label>
+        <textarea id="content" rows="8"></textarea>
+    </div>
+    <button onclick="saveData()">데이터 저장</button>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    /* ========================================================
+       [빨간색 표시: 아래 주석 처리된 부분에 본인의 값을 복붙하세요]
+       ======================================================== */
+    const firebaseConfig = {
+        apiKey: "{
+    apiKey: "AIzaSyDMrTAA8Br4XBzcYGeh-TDZx-5HCoLsE6k",
+    authDomain: "electricity-license-pro.firebaseapp.com",
+    projectId: "electricity-license-pro",
+    storageBucket: "electricity-license-pro.firebasestorage.app",
+    messagingSenderId: "248353139581",
+    appId: "1:248353139581:web:22594b90eb85d552f27a14"
+  };",
+        authDomain: "{
+    apiKey: "AIzaSyDMrTAA8Br4XBzcYGeh-TDZx-5HCoLsE6k",
+    authDomain: "electricity-license-pro.firebaseapp.com",
+    projectId: "electricity-license-pro",
+    storageBucket: "electricity-license-pro.firebasestorage.app",
+    messagingSenderId: "248353139581",
+    appId: "1:248353139581:web:22594b90eb85d552f27a14"
+  };",
+        projectId: "{
+    apiKey: "AIzaSyDMrTAA8Br4XBzcYGeh-TDZx-5HCoLsE6k",
+    authDomain: "electricity-license-pro.firebaseapp.com",
+    projectId: "electricity-license-pro",
+    storageBucket: "electricity-license-pro.firebasestorage.app",
+    messagingSenderId: "248353139581",
+    appId: "1:248353139581:web:22594b90eb85d552f27a14"
+  };",
+        storageBucket: "{
+    apiKey: "AIzaSyDMrTAA8Br4XBzcYGeh-TDZx-5HCoLsE6k",
+    authDomain: "electricity-license-pro.firebaseapp.com",
+    projectId: "electricity-license-pro",
+    storageBucket: "electricity-license-pro.firebasestorage.app",
+    messagingSenderId: "248353139581",
+    appId: "1:248353139581:web:22594b90eb85d552f27a14"
+  };",
+        messagingSenderId: "{
+    apiKey: "AIzaSyDMrTAA8Br4XBzcYGeh-TDZx-5HCoLsE6k",
+    authDomain: "electricity-license-pro.firebaseapp.com",
+    projectId: "electricity-license-pro",
+    storageBucket: "electricity-license-pro.firebasestorage.app",
+    messagingSenderId: "248353139581",
+    appId: "1:248353139581:web:22594b90eb85d552f27a14"
+  };",
+        appId: "{
+    apiKey: "AIzaSyDMrTAA8Br4XBzcYGeh-TDZx-5HCoLsE6k",
+    authDomain: "electricity-license-pro.firebaseapp.com",
+    projectId: "electricity-license-pro",
+    storageBucket: "electricity-license-pro.firebasestorage.app",
+    messagingSenderId: "248353139581",
+    appId: "1:248353139581:web:22594b90eb85d552f27a14"
+  };"
+    };
+    /* ======================================================== */
+
+    const db = getFirestore(initializeApp(firebaseConfig));
+
+    window.saveData = async () => {
+        const sub = document.getElementById('subjectSelect').value;
+        const tit = document.getElementById('title').value;
+        const con = document.getElementById('content').value;
+        try {
+            await addDoc(collection(db, "exam_data", sub, "chapters"), { title: tit, content: con, createdAt: new Date() });
+            alert("저장 성공");
+        } catch (e) { alert("저장 실패"); }
+    };
+</script>
+
+</body>
+</html>
